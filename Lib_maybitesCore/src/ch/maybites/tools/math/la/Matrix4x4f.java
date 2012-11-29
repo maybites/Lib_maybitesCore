@@ -71,7 +71,7 @@ public class Matrix4x4f
 	 * 
 	 * @param quat  normalized Quaternion.
 	 */
-	public Matrix4x4f (Quaternion4f quat)
+	public Matrix4x4f (Quaternionf quat)
 	{
 		initialize();
 		set (quat);
@@ -227,7 +227,7 @@ public class Matrix4x4f
 	 * 
 	 * @param quat  normalized Quaternion4f.
 	 */
-	public void set(Quaternion4f quat){
+	public void set(Quaternionf quat){
 		//quat.normalize();
 		float sqw = quat.w()*quat.w();
 		float sqx = quat.x()*quat.x();
@@ -293,7 +293,7 @@ public class Matrix4x4f
 	 * @return        Quaternion4f
 	 * 
 	 */
-	public Quaternion4f getQuaternion(){
+	public Quaternionf getQuaternion(){
 		float tr = m_[0] + m_[5] + m_[10];
 		float qw, qx, qy, qz;
 
@@ -323,7 +323,7 @@ public class Matrix4x4f
 			qz = 0.25f * S;
 		}
 
-		Quaternion4f ret = new Quaternion4f(qx, qy, qz, qw);
+		Quaternionf ret = new Quaternionf(qx, qy, qz, qw);
 		return ret;
 	}
 
@@ -827,7 +827,7 @@ public class Matrix4x4f
 	 *
 	 * @param quat   normalized Quaternion
 	 */
-	public void rotate (Quaternion4f quat){
+	public void rotate (Quaternionf quat){
 		multiply(new Matrix4x4f(quat));
 	}
 

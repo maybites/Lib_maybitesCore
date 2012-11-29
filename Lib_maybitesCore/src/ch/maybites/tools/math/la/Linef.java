@@ -37,28 +37,52 @@ public class Linef{
 		thePointA = new Vector3f(theOrigin);
 		direction = new Vector3f(theDirection);
 	}
+	
+	public Linef(Linef theOther) {
+		thePointA = new Vector3f(theOther.thePointA);
+		direction = new Vector3f(theOther.direction);
+	}
 
 	protected Vector3f getPointB(){
 		return thePointA.add(direction);
 	}
 
-	public Vector3f getDistanceUnityVector(Linef line){
-		Vector3f dirW = new Vector3f(line.direction);
-		Vector3f ret = direction.cross(line.direction);
-		ret.divide(ret.magnitude());
-		return ret;
+	
+	/**
+	 * This method sets thePointA closest to the origin.
+	 */
+	public void originize(){
+		Vector3f unity = thePointA.cross(direction);
+		Vector3f center = unity.cross(direction);
+		center.normalize();
+		center.scale(center.angle(thePointA)*thePointA.magnitude());
+		thePointA = center;
 	}
 	
 	public Vector3f getDistanceVector(Linef line){
-		Vector3f ret = getDistanceUnityVector(line);
-		ret.scale(getDistance(line));
-		return ret;
+		Vector3f dirVW = line.direction.cross(direction);
+		Vector3f r0s = line.thePointA.sub(thePointA);
+		if(dirVW.magnitude() != 0.0f){
+			dirVW.normalize();
+			dirVW.scale((float)Math.abs(dirVW.dot(r0s)));
+			return dirVW;
+		}
+		// if they are parallel
+		Linef lineA = new Linef(this);
+		Linef lineB = new Linef(line);
+		lineA.originize();
+		lineB.originize();
+		Vector3f diff = lineB.thePointA.sub(lineA.thePointA);
+		return diff;
+	}
+	
+	public boolean isParallel(Linef line){
+		Vector3f dirVW = direction.cross(line.direction);
+		return (dirVW.magnitude() == 0.0f)? true: false;
 	}
 	
 	public float getDistance(Linef line){
-		Vector3f dirVW = direction.cross(line.direction);
-		Vector3f r0s = line.thePointA.sub(thePointA);
-		return (float)(Math.abs(dirVW.dot(r0s)) / dirVW.magnitude());
+		return getDistanceVector(line).magnitude();
 	}
 
 	public Vector3f getDistanceVector(Vector3f point){
@@ -83,11 +107,15 @@ public class Linef{
 	public static void main(String[] args) {
 	        /* multiplying matrices */
 		
-		Linef line = new Linef(new Vector3f(0, 0, 0), new Vector3f(1, 0, 0));
+		Linef line = new Linef(new Vector3f(-2, 2, 2), new Vector3f(-1, 1, 1));
 		
-		Linef crossline = new Linef(new Vector3f(3, 0, 0), new Vector3f(1, 0, 0));
+		Linef crossline = new Linef(new Vector3f(2, 2, 1), new Vector3f(1, 1, 1));
+		
+		boolean parallel = line.isParallel(crossline);
 
 		float distance = line.getDistance(crossline);
+		
+		Vector3f distanceV = line.getDistanceVector(crossline);
 		
 		System.out.println(distance);
 

@@ -27,7 +27,7 @@
 package ch.maybites.tools.math.la;
 
 
-public class Quaternion4f {
+public class Quaternionf {
 
 	private float[] v_;
 
@@ -37,7 +37,7 @@ public class Quaternion4f {
 	 * 
 	 * @param m  Array of 4 matrix elements, x, y, z, w
 	 */
-	public Quaternion4f() {
+	public Quaternionf() {
 		reset();
 	}
 
@@ -47,7 +47,7 @@ public class Quaternion4f {
 	 * 
 	 * @param m  Array of 4 imaginary elements: x, y, z, w
 	 */
-	public Quaternion4f(float[] args) {
+	public Quaternionf(float[] args) {
 		reset();
 		for(int i = 0; i < 4; i++)
 			v_[i] = args[i];
@@ -61,7 +61,7 @@ public class Quaternion4f {
 	 * @param z  imaginary w value
 	 * @param w  imaginary z value
 	 */
-	public Quaternion4f(float theX, float theY, float theZ, float theW) {
+	public Quaternionf(float theX, float theY, float theZ, float theW) {
 		reset();
 		v_[0] = theX;
 		v_[1] = theY;
@@ -111,7 +111,7 @@ public class Quaternion4f {
 	}
 
 
-	public void set(Quaternion4f theQuaternion) {
+	public void set(Quaternionf theQuaternion) {
 		v_[0] = theQuaternion.x();
 		v_[1] = theQuaternion.y();
 		v_[2] = theQuaternion.z();
@@ -144,7 +144,7 @@ public class Quaternion4f {
 		return v_;
 	}
 	
-	public void multiply(Quaternion4f theA, Quaternion4f theB) {
+	public void multiply(Quaternionf theA, Quaternionf theB) {
 		v_[0] = theA.w() * theB.x() + theA.x() * theB.w() + theA.y() * theB.z() - theA.z() * theB.y();
 		v_[1] = theA.w() * theB.y() + theA.y() * theB.w() + theA.z() * theB.x() - theA.x() * theB.z();
 		v_[2] = theA.w() * theB.z() + theA.z() * theB.w() + theA.x() * theB.y() - theA.y() * theB.x();

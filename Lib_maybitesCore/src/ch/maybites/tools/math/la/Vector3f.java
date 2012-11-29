@@ -405,6 +405,16 @@ public class Vector3f
 	}
 
 	/**
+	 * Returns the cosine of the angle between two vectors. 
+	 *
+	 * @param theVector	the other vector
+	 * @return float	cosine of two vectors
+	 */
+	public final float angle(Vector3f theVector) {
+		return this.dot(theVector) / (magnitude() * theVector.magnitude());
+	}
+
+	/**
 	 * Returns the dot product of two vectors. The dot product is the cosinus of
 	 * the angle between two vectors
 	 *
@@ -467,19 +477,6 @@ public class Vector3f
 		v_[1] = generator.nextFloat() * 2.0F - 1.0F;
 		v_[2] = generator.nextFloat() * 2.0F - 1.0F;
 		normalize();
-	}
-
-
-	public final float angle(Vector3f theVector) {
-		float d = dot(theVector) / (length() * theVector.length());
-		/** @todo check these lines. */
-		if (d < -1.0f) {
-			d = -1.0f;
-		}
-		if (d > 1.0f) {
-			d = 1.0f;
-		}
-		return (float) Math.acos(d);
 	}
 
 
