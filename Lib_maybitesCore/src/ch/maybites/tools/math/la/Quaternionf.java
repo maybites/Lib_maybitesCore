@@ -134,6 +134,50 @@ public class Quaternionf {
 		return v_[3];
 	}
 
+	/**
+	 * Set the elements of the Quat to represent a rotation of angle
+	 * (degrees) around the axis (x,y,z)
+	 * 
+	 */
+	public void setRotate( float angle, float x, float y, float z ) {
+		angle = angle/180.0f * 3.14159f;
+		
+		float epsilon = 0.0000001f;
+
+		float length = (float)Math.sqrt( x * x + y * y + z * z );
+		if (length < epsilon) {
+			// ~zero length axis, so reset rotation to zero.
+			reset();
+			return;
+		}
+
+		float inversenorm  = 1.0f / length;
+		float coshalfangle = (float)Math.cos( 0.5f * angle );
+		float sinhalfangle = (float)Math.sin( 0.5f * angle );
+
+		setX(x * sinhalfangle * inversenorm);
+		setY(y * sinhalfangle * inversenorm);
+		setZ(z * sinhalfangle * inversenorm);
+		setW(coshalfangle);
+	}
+
+	public void setRotate(float angle, Vector3f vec) {
+		setRotate( angle, vec.x(), vec.y(), vec.z() );
+	}
+
+	public void setRotate(float angle1, Vector3f axis1,
+	                          float angle2, Vector3f axis2,
+	                          float angle3, Vector3f axis3) {
+	       Quaternionf q1 = new Quaternionf(); 
+	       q1.setRotate(angle1,axis1);
+	       Quaternionf q2 = new Quaternionf(); 
+	       q2.setRotate(angle2,axis2);
+	       Quaternionf q3 = new Quaternionf(); 
+	       q3.setRotate(angle3,axis3);
+
+	       setMultiply(q1, q2);
+	       setMultiply(this, q3);
+	}
 
 	/**
 	 * get the Quaternion values in an array 
@@ -144,30 +188,50 @@ public class Quaternionf {
 		return v_;
 	}
 	
-	public void multiply(Quaternionf theA, Quaternionf theB) {
+	/**
+	 * Set this quaternion as a result of the multiplication of the two specified quaternions
+	 * @param theA
+	 * @param theB
+	 */
+	public void setMultiply(Quaternionf theA, Quaternionf theB) {
 		v_[0] = theA.w() * theB.x() + theA.x() * theB.w() + theA.y() * theB.z() - theA.z() * theB.y();
 		v_[1] = theA.w() * theB.y() + theA.y() * theB.w() + theA.z() * theB.x() - theA.x() * theB.z();
 		v_[2] = theA.w() * theB.z() + theA.z() * theB.w() + theA.x() * theB.y() - theA.y() * theB.x();
 		v_[3] = theA.w() * theB.w() - theA.x() * theB.x() - theA.y() * theB.y() - theA.z() * theB.z();
 	}
-
-
-	/*
-    public Vector4d getVectorAndAngle() {
-        final Vector4d theResult = new Vector4d();
-
-        float s = (float) Math.sqrt(1.0f - w * w);
-        if (s < Mathematik.EPSILON) {
-            s = 1.0f;
-        }
-
-        theResult.w = (float) Math.acos(w) * 2.0f;
-        theResult.x = x / s;
-        theResult.y = y / s;
-        theResult.z = z / s;
-
-        return theResult;
-    }
+	
+	/**
+	 * Multiply this quaternion with the specified quaternion
+	 * @param theA
 	 */
+	public void multiply(Quaternionf theA) {
+		setMultiply(this, theA);
+	}
+	
+	/**
+	 * Multiply this quaternion with the specified quaternion and return this instance
+	 * @param theA
+	 * @return this instance
+	 */
+	public Quaternionf getMultiplied(Quaternionf theA) {
+		setMultiply(this, theA);
+		return this;
+	}
+	
+	/**
+	 * Returns the result of the multiplication between this and the specified
+	 * Quaternion without modifying this instance
+	 * @param theA
+	 * @return the new instance of a quaternion
+	 */
+	public Quaternionf makeMultiply(Quaternionf theA) {
+		return clone().getMultiplied(theA);
+	}
 
+	/**
+	 * get an exact copy of this quaternion
+	 */
+	public Quaternionf clone(){
+		return new Quaternionf(x(), y(), z(), w());
+	}
 }

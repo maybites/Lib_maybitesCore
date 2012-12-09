@@ -1,5 +1,7 @@
 package ch.maybites.tools.math.la;
 
+import ch.maybites.tools.threedee.Frustum;
+
 
 /*
  * (C) 2012 - Maybites
@@ -23,6 +25,9 @@ package ch.maybites.tools.math.la;
 /**
  * Implementation of a ROW-Oriented 4x4 matrix 
  * it is suited for use in a 2D and 3D graphics rendering engine.
+ * 
+ * All transformations on this matrix, if not specified, are by definition
+ * postMultiplication
  * 
  */   
 public class Matrix4x4f 
@@ -67,14 +72,59 @@ public class Matrix4x4f
 	}
 
 	/**
-	 * Construct a 4x4 matrix from the specified quaternion.
+	 * Construct a Rotation matrix from the specified quaternion.
 	 * 
 	 * @param quat  normalized Quaternion.
 	 */
 	public Matrix4x4f (Quaternionf quat)
 	{
-		initialize();
 		set (quat);
+	}
+	
+	/**
+	 * Construct a Translation matrix from the specified Vector.
+	 * 
+	 * @param translation  Translation vector.
+	 */
+	public Matrix4x4f (Vector3f translation)
+	{
+		set(translation);
+	}
+	
+	/**
+	 * Construct a Scale matrix from the specified factors.
+	 * 
+	 * @param scaleX
+	 * @param scaleY
+	 * @param scaleZ
+	 */
+	public Matrix4x4f (float scaleX, float scaleY, float scaleZ)
+	{
+		set(scaleX, scaleY, scaleZ);
+	}
+	
+	/**
+	 * Construct a 4x4 frustum matrix from the specified frustum.
+	 * 
+	 * @param frust  Frustum.
+	 */
+	public Matrix4x4f (Frustum frust)
+	{
+		if(frust.isOrtho())
+			setOrthograficMatrix(frust.getLeft(),
+				frust.getRight(), 
+				frust.getBottom(), 
+				frust.getTop(), 
+				frust.getNear(), 
+				frust.getFar());
+		else
+			setPerspectiveMatrix(frust.getLeft(),
+					frust.getRight(), 
+					frust.getBottom(), 
+					frust.getTop(), 
+					frust.getNear(), 
+					frust.getFar());
+			
 	}
 
 
@@ -223,11 +273,90 @@ public class Matrix4x4f
 
 
 	/**
-	 * Sets Matrix from a normalized Quaternion.
+	 * Sets this matrix as a perspective projection matrix
+	 * @param left
+	 * @param right
+	 * @param bottom
+	 * @param top
+	 * @param zNear
+	 * @param zFar
+	 */
+	public void setPerspectiveMatrix(float left, float right,
+			float bottom, float top,
+			float zNear, float zFar){
+		
+		float A = (right+left)/(right-left);
+		float B = (top+bottom)/(top-bottom);
+		float C = -(zFar+zNear)/(zFar-zNear);
+		float D = -2.0f*zFar*zNear/(zFar-zNear);
+		initialize();
+		setElement(0, 0, 2.0f*zNear/(right-left));
+		setElement(1, 1, 2.0f*zNear/(top-bottom));
+		setElement(2, 0, A);
+		setElement(2, 1, B);
+		setElement(2, 2, C);
+		setElement(2, 3, -1.0f);
+		setElement(3, 2, D);
+	}
+	
+	/**
+	 * Sets this matrix as a orthografic projection matrix
+	 * @param left
+	 * @param right
+	 * @param bottom
+	 * @param top
+	 * @param zNear
+	 * @param zFar
+	 */
+	public void setOrthograficMatrix(float left, float right,
+			float bottom, float top,
+			float zNear, float zFar){
+
+	    float tx = -(right+left)/(right-left);
+	    float ty = -(top+bottom)/(top-bottom);
+	    float tz = -(zFar+zNear)/(zFar-zNear);
+		initialize();
+		setElement(0, 0, 2.0f/(right-left));
+		setElement(1, 1, 2.0f/(top-bottom));
+		setElement(2, 2, -2.0f/(zFar-zNear));
+		setElement(3, 0, tx);
+		setElement(3, 1, ty);
+		setElement(3, 2, tz);
+	}
+
+	/**
+	 * Sets a Translation Matrix from a Vector.
+	 * 
+	 * @param vec  Translation Vector.
+	 */
+	public void set(Vector3f vec){
+		setIdentity();
+		setElement (3, 0, vec.x());
+		setElement (3, 1, vec.y());
+		setElement (3, 2, vec.z());  
+	}
+	
+	/**
+	 * Sets a Scale Matrix from set factors
+	 * 
+	 * @param scaleX
+	 * @param scaleY
+	 * @param scaleZ
+	 */
+	public void set(float scaleX, float scaleY, float scaleZ){
+		initialize();
+		setElement (0, 0, scaleX);
+		setElement (1, 1, scaleY);
+		setElement (2, 2, scaleZ);  
+	}
+	
+	/**
+	 * Sets Rotation Matrix from a normalized Quaternion.
 	 * 
 	 * @param quat  normalized Quaternion4f.
 	 */
 	public void set(Quaternionf quat){
+		initialize();
 		//quat.normalize();
 		float sqw = quat.w()*quat.w();
 		float sqx = quat.x()*quat.x();
@@ -358,7 +487,16 @@ public class Matrix4x4f
 		return m_[i*4 + j];  
 	}
 
-
+	/**
+	 * Return Row as a vector.
+	 * 
+	 * @param row  Row to get (first row is 0).
+	 * @return   Vector3f at specified position.
+	 * @throws   ArrayOutOfBoundsException
+	 */
+	public Vector3f getRowAsVector(int row){
+		return new Vector3f(getElement(row, 0), getElement(row, 1), getElement(row, 1));
+	}
 
 	/**
 	 * Set specified matrix element.
@@ -374,20 +512,40 @@ public class Matrix4x4f
 	}
 
 
-
 	/**
 	 * Add the specified 4x4 matrix to this matrix.
 	 * 
 	 * @param matrix  Matrix to add.
 	 */
-	public void add (Matrix4x4f matrix)
+	public void add(Matrix4x4f matrix)
 	{
 		for (int i=0; i<4; i++)
 			for (int j=0; j<4; j++)
 				m_[i*4 + j] += matrix.m_[i*4 + j];
 	}
 
+	/**
+	 * Add the specified 4x4 matrix to this matrix and return this instance
+	 * 
+	 * @param matrix  Matrix to add.
+	 * @return this instance
+	 */
+	public Matrix4x4f getAdd(Matrix4x4f matrix)
+	{
+		add(matrix);
+		return this;
+	}
 
+	/**
+	 * Add the specified 4x4 matrix to this matrix and return a new instance.
+	 * This method does NOT modify this instance
+	 * 
+	 * @param matrix  Matrix to add.
+	 * @return this instance
+	 */
+	public Matrix4x4f makeAdd(Matrix4x4f matrix){
+		return clone().getAdd(matrix);
+	}
 
 	/**
 	 * Add two matrices and return the result matrix.
@@ -396,7 +554,7 @@ public class Matrix4x4f
 	 * @param m2  Second matrix to add.
 	 * @return    Sum m1 + m2.
 	 */
-	public static Matrix4x4f add (Matrix4x4f m1, Matrix4x4f m2)
+	public Matrix4x4f add (Matrix4x4f m1, Matrix4x4f m2)
 	{
 		Matrix4x4f m = new Matrix4x4f (m1);
 		m.add (m2);
@@ -411,8 +569,7 @@ public class Matrix4x4f
 	 * 
 	 * @param matrix  Matrix to multiply with.
 	 */
-	public void multiply (Matrix4x4f matrix)
-	{
+	public void multiply(Matrix4x4f matrix){
 		Matrix4x4f product = new Matrix4x4f();
 
 		for (int i = 0; i < 16; i += 4) {
@@ -423,25 +580,33 @@ public class Matrix4x4f
 			}
 		}
 
-		set (product);
+		set(product);
 	}
 
+	/**
+	 * Multiply this 4x4 matrix with the specified matrix and
+	 * store the result in this 4x4 matrix.
+	 * 
+	 * @param matrix  Matrix to multiply with.
+	 * @return this instance
+	 */
+	public Matrix4x4f getMultiplied(Matrix4x4f matrix){
+		multiply(matrix);
+		return this;
+	}
 
 
 	/**
-	 * Multiply two matrices and return the result matrix.
+	 * Multiply two matrices and return the result matrix. This instance will
+	 * NOT be modified
 	 * 
-	 * @param m1  First matrix to multiply.
-	 * @param m2  Second matrix to multiply.
+	 * @param matrix  First matrix to multiply.
 	 * @return    Product m1 * m2.
 	 */
-	public static Matrix4x4f multiply (Matrix4x4f m1, Matrix4x4f m2)
+	public Matrix4x4f makeMultiply (Matrix4x4f matrix)
 	{
-		Matrix4x4f m = new Matrix4x4f (m1);
-		m.multiply (m2);
-		return m;
+		return clone().getMultiplied(matrix);
 	}
-
 
 
 	/**
@@ -622,13 +787,7 @@ public class Matrix4x4f
 	 */
 	public void translate (Vector3f vec)
 	{
-		Matrix4x4f  translationMatrix = new Matrix4x4f();
-
-		translationMatrix.setElement (3, 0, vec.x());
-		translationMatrix.setElement (3, 1, vec.y());
-		translationMatrix.setElement (3, 2, vec.z());
-
-		multiply (translationMatrix);
+		translate(vec.x(), vec.y(), vec.z());
 	}
 
 
@@ -856,17 +1015,8 @@ public class Matrix4x4f
 	 */
 	public void scale (Vector3f scale)
 	{
-		Matrix4x4f  scalingMatrix = new Matrix4x4f();
-
-		scalingMatrix.setElement (0, 0, scale.x());
-		scalingMatrix.setElement (1, 1, scale.y());
-		scalingMatrix.setElement (2, 2, scale.z());  
-
-		multiply (scalingMatrix);
+		scale(scale.x(), scale.y(), scale.z());
 	}
-
-
-
 	
 	/**
 	 * Apply scaling relative to a fixed point to this 4x4 matrix.
@@ -985,19 +1135,22 @@ public class Matrix4x4f
 			m_[i] = dst[i] * det;
 	}
 
-
+	/**
+	 * Invert this 4x4 matrix and return this instance.
+	 * @return this instance
+	 */
+	public Matrix4x4f getInvert(){
+		invert();
+		return this;
+	}
 
 	/**
 	 * Return the inverse of the specified matrix.
 	 * 
-	 * @param matrix  Matrix to finr the inverse of.
-	 * @return        Inverse of the specified matrix.
+	 * @return        new Instance of the inverse of this matrix.
 	 */
-	public static Matrix4x4f inverse (Matrix4x4f matrix)
-	{
-		Matrix4x4f m = new Matrix4x4f (matrix);
-		m.invert();
-		return m;
+	public Matrix4x4f makeInverse(){
+		return clone().getInvert();
 	}
 
 
@@ -1132,6 +1285,9 @@ public class Matrix4x4f
 	}
 
 
+	public Matrix4x4f clone(){
+		return new Matrix4x4f(this);
+	}
 
 	/**
 	 * Create a string representation of this matrix.

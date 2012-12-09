@@ -24,44 +24,78 @@ package ch.maybites.tools.math.la;
 
 public class Linef{
 
-	public Vector3f thePointA;
+	public Vector3f theOrigin;
 
 	public Vector3f direction;
 
 	public Linef() {
-		thePointA = new Vector3f();
+		theOrigin = new Vector3f();
 		direction = new Vector3f();
 	}
 
+	/**
+	 * Creates a line in theOrigin with its direction
+	 * 
+	 * @param	theOrigin	the reference point of that line
+	 * @param	theDirection	the direction vector of that line
+	 */
 	public Linef(Vector3f theOrigin, Vector3f theDirection) {
-		thePointA = new Vector3f(theOrigin);
+		theOrigin = new Vector3f(theOrigin);
 		direction = new Vector3f(theDirection);
 	}
 	
+	/**
+	 * Creates a copy of a line
+	 * 
+	 * @param	theOther	the line to be copied
+	 */
 	public Linef(Linef theOther) {
-		thePointA = new Vector3f(theOther.thePointA);
+		theOrigin = new Vector3f(theOther.theOrigin);
 		direction = new Vector3f(theOther.direction);
 	}
+	
+	/**
+	 * sets the line defined by two point: theOrigin and another point
+	 * 
+	 * @param	theOrigin		the reference point in that line
+	 * @param	theOtherPoint	the other point of that line
+	 */
+	public void set(Vector3f theOrigin, Vector3f theOtherPoint) {
+		theOrigin = new Vector3f(theOrigin);
+		direction = theOtherPoint.makeSub(theOrigin);
+	}
 
-	protected Vector3f getPointB(){
-		return thePointA.add(direction);
+	/**
+	 * returns another point on this line
+	 * it is the result of a vector addition of theOrigin and the direction
+	 * 
+	 * @return	theOtherPoint	the other point on that line
+	 */
+	protected Vector3f theOtherPoint(){
+		return theOrigin.makeAdd(direction);
 	}
 
 	
 	/**
-	 * This method sets thePointA closest to the origin.
+	 * This method sets theOrigin closest to the space origin.
 	 */
 	public void originize(){
-		Vector3f unity = thePointA.cross(direction);
-		Vector3f center = unity.cross(direction);
+		Vector3f unity = theOrigin.makeCross(direction);
+		Vector3f center = unity.makeCross(direction);
 		center.normalize();
-		center.scale(center.angle(thePointA)*thePointA.magnitude());
-		thePointA = center;
+		center.scale(center.angle(theOrigin)*theOrigin.magnitude());
+		theOrigin = center;
 	}
 	
+	/**
+	 * returns the shortest distance between to lines
+	 * 
+	 * @param	otherLine	the other line
+	 * @return	distance vector
+	 */
 	public Vector3f getDistanceVector(Linef line){
-		Vector3f dirVW = line.direction.cross(direction);
-		Vector3f r0s = line.thePointA.sub(thePointA);
+		Vector3f dirVW = line.direction.makeCross(direction);
+		Vector3f r0s = line.theOrigin.makeSub(theOrigin);
 		if(dirVW.magnitude() != 0.0f){
 			dirVW.normalize();
 			dirVW.scale((float)Math.abs(dirVW.dot(r0s)));
@@ -72,36 +106,70 @@ public class Linef{
 		Linef lineB = new Linef(line);
 		lineA.originize();
 		lineB.originize();
-		Vector3f diff = lineB.thePointA.sub(lineA.thePointA);
+		Vector3f diff = lineB.theOrigin.makeSub(lineA.theOrigin);
 		return diff;
 	}
 	
-	public boolean isParallel(Linef line){
-		Vector3f dirVW = direction.cross(line.direction);
+	/**
+	 * checks if the specified line is parallel to this line
+	 * 
+	 * @param	otherLine	the other line
+	 * @return	true if parallel
+	 */
+	public boolean isParallel(Linef otherLine){
+		Vector3f dirVW = direction.makeCross(otherLine.direction);
 		return (dirVW.magnitude() == 0.0f)? true: false;
 	}
 	
-	public float getDistance(Linef line){
-		return getDistanceVector(line).magnitude();
+	/**
+	 * returns the shortest distance between to lines
+	 * 
+	 * @param	otherLine	the other line
+	 * @return	distance
+	 */
+	public float getDistance(Linef otherLine){
+		return getDistanceVector(otherLine).magnitude();
 	}
 
+	/**
+	 * returns the shortest distance vector between this line and the specified point
+	 * 
+	 * @param	point
+	 * @return	distance vector
+	 */
 	public Vector3f getDistanceVector(Vector3f point){
-		Vector3f ret = point.sub(thePointA);
+		Vector3f ret = point.makeSub(theOrigin);
 		Vector3f dir = new Vector3f(direction);
 		float scale = dir.dot(ret) / (dir.magnitude() * dir.magnitude());
 		dir.scale(scale);
-		ret.sub(ret, dir);
+		ret.setSub(ret, dir);
 		return ret;
 	}
 
+	/**
+	 * returns the shortest distance between this line and the specified point
+	 * 
+	 * @param	point
+	 * @return	distance
+	 */
 	public float getDistance(Vector3f point){
-		Vector3f temp = point.sub(thePointA);
-		temp.cross(temp, direction);
+		Vector3f temp = point.makeSub(theOrigin);
+		temp.setCross(temp, direction);
 		return temp.magnitude() / direction.magnitude();
 	}
-	
+
+	/**
+	 * checks if this line and the specified line intersect
+	 * 
+	 * @param	otherLine
+	 * @return	true if they intersect
+	 */
+	public boolean intersect(Vector3f otherLine){
+		return (getDistance(otherLine) == 0.0f)? true: false;
+	}
+
 	public String toString() {
-		return "origin + " + thePointA + " / " + " direction " + direction;
+		return "origin + " + theOrigin + " / " + " direction " + direction;
 	}
 	
 	public static void main(String[] args) {

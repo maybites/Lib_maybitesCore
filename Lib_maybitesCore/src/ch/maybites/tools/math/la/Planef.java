@@ -59,6 +59,20 @@ public class Planef{
 		normal = new Vector3f(theNormal);
 		update(theOrigin);
 	}
+	
+	/**
+	 * Creates a plane defined by two lines. If the lines don't intersect each other,
+	 * then the origin of the plane will lie in the middle between the two lines origins 
+	 * 
+	 * @param	theFirstLine	
+	 * @param	theSecondLine	
+	 */
+	public Planef(Linef theFirstLine, Linef theSecondLine) {
+		normal = theFirstLine.direction.makeCross(theSecondLine.direction);
+		Vector3f origin = theFirstLine.theOrigin.makeAdd(theSecondLine.theOrigin);
+		origin.scale(.5f);
+		update(origin);
+	}
 
 	/**
 	 * Creates a plane in theOrigin and two other points in that plane
@@ -70,7 +84,7 @@ public class Planef{
 	public Planef(Vector3f theOrigin,
 			Vector3f thePointA,
 			Vector3f thePointB) {
-		normal = thePointA.sub(theOrigin).cross(thePointB.sub(theOrigin));
+		normal = thePointA.makeSub(theOrigin).makeCross(thePointB.makeSub(theOrigin));
 		update(theOrigin);
 	}
 
@@ -82,7 +96,7 @@ public class Planef{
 	 * @param	theVectorB	VectorB that lies in that plane
 	 */
 	public void set(Vector3f theOrigin, Vector3f theVectorA, Vector3f theVectorB) {
-		normal = theVectorA.cross(theVectorB);
+		normal = theVectorA.makeCross(theVectorB);
 		update(theOrigin);
 	}
 
@@ -134,8 +148,8 @@ public class Planef{
 			return null;
 
 		Vector3f vector = new Vector3f(line.direction);
-		vector.scale((p - normal.dot(line.thePointA))/normal.dot(vector));
-		return line.thePointA.add(vector);
+		vector.scale((p - normal.dot(line.theOrigin))/normal.dot(vector));
+		return line.theOrigin.makeAdd(vector);
 	}
 
 	/**
@@ -149,9 +163,9 @@ public class Planef{
 		if(!intersects(thePlane)){
 			return null;
 		}
-		Vector3f direction = thePlane.getNormal().cross(getNormal());
+		Vector3f direction = thePlane.getNormal().makeCross(getNormal());
 		direction.normalize();
-		Vector3f point = thePlane.getOrigin().add(getOrigin());
+		Vector3f point = thePlane.getOrigin().makeAdd(getOrigin());
 		return new Linef(point, direction);
 	}
 
@@ -162,9 +176,7 @@ public class Planef{
 	 * @return	true if thePlane intersects with this plane
 	 */
 	public boolean intersects(Planef thePlane){
-		// first check if thePlane is parallel to plane:
-		Vector3f direction = thePlane.getNormal().cross(getNormal());
-		return (thePlane.getNormal().cross(getNormal()).magnitude() == 0.0f)? false: true;
+		return (thePlane.getNormal().makeCross(getNormal()).magnitude() == 0.0f)? false: true;
 	}
 
 	/**

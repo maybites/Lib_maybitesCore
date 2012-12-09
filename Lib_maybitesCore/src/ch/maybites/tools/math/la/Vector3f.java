@@ -119,7 +119,7 @@ public class Vector3f
 
 
 	  /**
-	   * Return the i'th element of this point.
+	   * Return the i'th element of this Vector.
 	   * 
 	   * @param i  Index of element to get (first is 0).
 	   * @return   i'th element of this point.
@@ -187,8 +187,28 @@ public class Vector3f
 	 * @param theVector	the Vector to be added
 	 * @return the addition
 	 */
-	public final Vector3f add(Vector3f theVector) {
-		return new Vector3f(v_[0] + theVector.x(), v_[1] + theVector.y(), v_[2] + theVector.z());
+	public final Vector3f makeAdd(Vector3f theVector) {
+		return clone().getAdded(theVector);
+	}
+
+	/**
+	 * Adds the specified Vector to this instance. This method modifies this instance.
+	 * 
+	 * @param theVector	the Vector to be added
+	 */
+	public final void add(Vector3f theVector) {
+		setAdd(this, theVector);
+	}
+	
+	/**
+	 * Adds the specified Vector to this instance and returns it. This method modifies this instance.
+	 * 
+	 * @param theVector	the Vector to be added
+	 * @return the addition
+	 */
+	public final Vector3f getAdded(Vector3f theVector) {
+		setAdd(this, theVector);
+		return this;
 	}
 
 	/**
@@ -204,7 +224,7 @@ public class Vector3f
 	 * @param theVectorA	of class Vector3f
 	 * @param theVectorB	of class Vector3f
 	 */
-	public final void add(Vector3f theVectorA, Vector3f theVectorB) {
+	public final void setAdd(Vector3f theVectorA, Vector3f theVectorB) {
 		v_[0] = theVectorA.v_[0] + theVectorB.v_[0];
 		v_[1] = theVectorA.v_[1] + theVectorB.v_[1];
 		v_[2] = theVectorA.v_[2] + theVectorB.v_[2];
@@ -223,12 +243,31 @@ public class Vector3f
 	 * @param theVectorA	of class Vector3f
 	 * @param theVectorB	of class Vector3f
 	 */
-	public final void sub(Vector3f theVectorA, Vector3f theVectorB) {
+	public final void setSub(Vector3f theVectorA, Vector3f theVectorB) {
 		v_[0] = theVectorA.v_[0] - theVectorB.v_[0];
 		v_[1] = theVectorA.v_[1] - theVectorB.v_[1];
 		v_[2] = theVectorA.v_[2] - theVectorB.v_[2];
 	}
 
+	/**
+	 * Substract the specified vector from this instance. This method modifies this instance.
+	 * 	 * 
+	 * @param theVectorA	of class Vector3f
+	 */
+	public final void sub(Vector3f theVectorA) {
+		setSub(this, theVectorA);
+	}
+	
+	/**
+	 * Substract the specified vector from this instance and return it. This method modifies this instance.
+	 * 	 * 
+	 * @param theVectorA	of class Vector3f
+	 * @return this instance
+	 */
+	public final Vector3f getSub(Vector3f theVectorA) {
+		setSub(this, theVectorA);
+		return this;
+	}
 
 	/**
 	 * Returns a new Vector with the result of the subtraction of the 
@@ -240,10 +279,10 @@ public class Vector3f
 	 * @param theVector	the Vector to be substracted
 	 * @return the subtraction
 	 */
-	public final Vector3f sub(Vector3f theVector) {
-		return new Vector3f(v_[0] - theVector.x(), v_[1] - theVector.y(), v_[2] - theVector.z());
+	public final Vector3f makeSub(Vector3f theVector) {
+		return clone().getSub(theVector);
 	}
-
+	
 
 	/**
 	 * Use this method to negate a vector. The result of the negation is vector
@@ -275,9 +314,7 @@ public class Vector3f
 	 * @related negate ( )
 	 */
 	public final void scale(final float theScalar) {
-		v_[0] *= theScalar;
-		v_[1] *= theScalar;
-		v_[2] *= theScalar;
+		scale(theScalar, theScalar, theScalar);
 	}
 
 
@@ -287,13 +324,12 @@ public class Vector3f
 	 *            Vector3f: vector with the value each coord is scaled with
 	 */
 	public final void scale(final Vector3f theVector) {
-		v_[0] *= theVector.v_[0];
-		v_[1] *= theVector.v_[1];
-		v_[2] *= theVector.v_[2];
+		scale(theVector.v_[0], theVector.v_[1], theVector.v_[2]);
 	}
 
 
 	/**
+	 *	Scales this instance with the specified values
 	 *
 	 * @param theX float
 	 * @param theY float
@@ -303,6 +339,54 @@ public class Vector3f
 		v_[0] *= theX;
 		v_[1] *= theY;
 		v_[2] *= theZ;
+	}
+
+	/**
+	 *	Scales this instance with the specified values
+	 *
+	 * @param theX float
+	 * @param theY float
+	 * @param theZ float
+	 * @return this instance
+	 */
+	public final Vector3f getScaled(float theX, float theY, float theZ) {
+		scale(theX, theY, theZ);
+		return this;
+	}
+	
+	/**
+	 *	Scales this instance with the scalar
+	 *
+	 * @param scalar float
+	 * @return this instance
+	 */
+	public final Vector3f getScaled(float scalar) {
+		scale(scalar);
+		return this;
+	}
+
+	/**
+	 *	Scales this instance with the scalar and returns a new Vector.
+	 *  This method does NOT modify this instance 
+	 *
+	 * @param scalar float
+	 * @return a new instance
+	 */
+	public final Vector3f makeScale(float scalar) {
+		return clone().getScaled(scalar);
+	}
+
+	/**
+	 *	Scales this instance with the specified values and returns a new Vector.
+	 *  This method does NOT modify this instance 
+	 *
+	 * @param theX float
+	 * @param theY float
+	 * @param theZ float
+	 * @return a new instance
+	 */
+	public final Vector3f makeScale(float theX, float theY, float theZ) {
+		return clone().getScaled(theX, theY, theZ);
 	}
 
 
@@ -374,34 +458,47 @@ public class Vector3f
 	 * @param theVectorA
 	 * @param theVectorB
 	 */
-	public final void cross(final Vector3f theVectorA, final Vector3f theVectorB) {
-		set(theVectorA.cross(theVectorB));
+	public final void setCross(final Vector3f theVectorA, final Vector3f theVectorB) {
+		set(theVectorA.makeCross(theVectorB));
 	}
 
 	/**
-	 * Returns a new Vector with the result of the addition of the 
-	 * specified Vectors with this Vector. This instance will NOT be
-	 * modified
-	 * 
-	 * Usage: Vector3f newVec = thisVector.add(otherVector)
-	 * 
-	 * @param theVector	the Vector to be added
-	 */
-
-	/**
-	 * Returns the cross product of two vectors. The cross product returns a
+	 * Returns the cross product of this instance and the 
+	 * specified vector. The cross product returns a
 	 * vector standing vertical on the two vectors. This instance will NOT be
 	 * modified
-	 * 
-	 * Usage: Vector3f newVec = thisVector.cross(otherVector)
 	 * 
 	 * @param theVector	the other vector
 	 * @return the cross product
 	 */
-	public Vector3f cross(final Vector3f theVector) {
-		return new Vector3f(v_[1] * theVector.v_[2] - v_[2] * theVector.v_[1],
-				v_[2] * theVector.v_[0] - v_[0] * theVector.v_[2],
-				v_[0] * theVector.v_[1] - v_[1] * theVector.v_[0]);
+	public Vector3f makeCross(final Vector3f theVector) {
+		return clone().getCrossed(theVector);
+	}
+	
+	/**
+	 * This vector will be crossed with the specified vector and the result will be
+	 * stored in this instance. The cross product returns a
+	 * vector standing vertical on the two vectors. 
+	 * 
+	 * @param theVector	the other vector
+	 */
+	public void cross(final Vector3f theVector) {
+		set(v_[1] * theVector.v_[2] - v_[2] * theVector.v_[1],
+			v_[2] * theVector.v_[0] - v_[0] * theVector.v_[2],
+			v_[0] * theVector.v_[1] - v_[1] * theVector.v_[0]);
+	}
+
+	/**
+	 * This vector will be crossed with the specified vector and the result will be
+	 * stored in this instance. The cross product returns a
+	 * vector standing vertical on the two vectors. 
+	 * 
+	 * @param theVector	the other vector
+	 * @return this modified instance
+	 */
+	public Vector3f getCrossed(final Vector3f theVector) {
+		cross(theVector);
+		return this;
 	}
 
 	/**
