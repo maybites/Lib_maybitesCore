@@ -5,7 +5,7 @@
 			Processing.org -> Eclipse Ant Builder for Applets and Applications
  		======================================================================================
  		</description>
- 	    <property name="workspace.location" value="/Users/maf/Arbeiten/02_code/eclipse/libraries"/>
+ 	    <property name="workspace.location" value="/Users/maf/Arbeiten/02_code/eclipse/git/Lib_maybitesCore"/>
      	<property name="processing.dir" value="/Applications/Processing"/>
         <property name="project.name" value="Lib_maybitesCore"/>
  		<property name="main.class.name" value=""/>
