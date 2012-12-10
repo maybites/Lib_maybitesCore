@@ -382,7 +382,7 @@ public class Matrix4x4d
    * Transform a set of 3D coordinates using this 4x4 matrix.
    * The result of the operation is put back in the original array.
    * 
-   * @param point  Points to transform [x0,y0,z0,x1,y1,z1,...]
+   * @param points  Points to transform [x0,y0,z0,x1,y1,z1,...]
    */
   public void transformPoints (double[] points)
   {

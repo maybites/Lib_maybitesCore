@@ -554,7 +554,7 @@ public class Matrix4x4f
 	 * @param m2  Second matrix to add.
 	 * @return    Sum m1 + m2.
 	 */
-	public Matrix4x4f add (Matrix4x4f m1, Matrix4x4f m2)
+	public Matrix4x4f makeAdd(Matrix4x4f m1, Matrix4x4f m2)
 	{
 		Matrix4x4f m = new Matrix4x4f (m1);
 		m.add (m2);
@@ -603,8 +603,7 @@ public class Matrix4x4f
 	 * @param matrix  First matrix to multiply.
 	 * @return    Product m1 * m2.
 	 */
-	public Matrix4x4f makeMultiply (Matrix4x4f matrix)
-	{
+	public Matrix4x4f makeMultiply (Matrix4x4f matrix){
 		return clone().getMultiplied(matrix);
 	}
 
@@ -662,7 +661,7 @@ public class Matrix4x4f
 	 * Transform a set of 3D coordinates using this 4x4 matrix.
 	 * The result of the operation is put back in the original array.
 	 * 
-	 * @param point  Points to transform [x0,y0,z0,x1,y1,z1,...]
+	 * @param points  Points to transform [x0,y0,z0,x1,y1,z1,...]
 	 */
 	public void transformPoints (float[] points)
 	{
@@ -1011,7 +1010,7 @@ public class Matrix4x4f
 	/**
 	 * Apply scaling-vector (relative to origo) to this 4x4 matrix.
 	 * 
-	 * @param vec  Scaling Vector3f.
+	 * @param scale  Scaling Vector3f.
 	 */
 	public void scale (Vector3f scale)
 	{

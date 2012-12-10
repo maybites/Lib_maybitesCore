@@ -43,7 +43,7 @@ public class Frustum {
 	/**
 	 * Creates a Perspective Frustum Instance based on the provided value array
 	 * 
-	 * @param float array [_left, _right, _bottom, _top, _zNear, _zFar]
+	 * @param _values float array [_left, _right, _bottom, _top, _zNear, _zFar]
 	 */
 	public Frustum(float[] _values){
 		left = _values[0];

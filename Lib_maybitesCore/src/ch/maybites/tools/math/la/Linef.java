@@ -90,7 +90,7 @@ public class Linef{
 	/**
 	 * returns the shortest distance between to lines
 	 * 
-	 * @param	otherLine	the other line
+	 * @param	line	the other line
 	 * @return	distance vector
 	 */
 	public Vector3f getDistanceVector(Linef line){

@@ -33,8 +33,7 @@ public class Node {
 	}
 	
 	public void setOrientation(Vector3f euler){
-		Quaternionf q = new Quaternionf();
-		q.setRotate(euler.y(), new Vector3f(0, 1, 0), euler.x(), new Vector3f(1, 0, 0), euler.z(), new Vector3f(0, 0, 1));
+		Quaternionf q = new Quaternionf(euler.x(), euler.y(), euler.z());
 		setOrientation(q);
 	}
 	

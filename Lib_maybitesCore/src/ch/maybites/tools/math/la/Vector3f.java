@@ -83,7 +83,7 @@ public class Vector3f
 	/**
 	 * Construct a 3-element vector as a copy of the specified Vector.
 	 * 
-	 * @param Vector4d
+	 * @param vector
 	 */
 	public Vector3f (Vector3f vector)
 	{
@@ -132,8 +132,8 @@ public class Vector3f
 	  /**
 	   * Set the i'th element of this vector.
 	   * 
-	   * @param i  Index of element to set (first is 0).
-	   * @param    Value to set.
+	   * @param i  		Index of element to set (first is 0).
+	   * @param value   Value to set.
 	   */
 	  public void setElement (int i, float value)
 	  {
@@ -164,7 +164,7 @@ public class Vector3f
 		  v_[2] = z;
 	  }
 
-	  public final float[] toArray() {
+	  public final float[] get() {
 	      return v_;
 	  }
 
@@ -251,7 +251,7 @@ public class Vector3f
 
 	/**
 	 * Substract the specified vector from this instance. This method modifies this instance.
-	 * 	 * 
+	 * 
 	 * @param theVectorA	of class Vector3f
 	 */
 	public final void sub(Vector3f theVectorA) {
@@ -260,7 +260,7 @@ public class Vector3f
 	
 	/**
 	 * Substract the specified vector from this instance and return it. This method modifies this instance.
-	 * 	 * 
+	 *  
 	 * @param theVectorA	of class Vector3f
 	 * @return this instance
 	 */
@@ -290,7 +290,6 @@ public class Vector3f
 	 * negation is the additive inverse of the vector. The sum of a value and
 	 * its additive inerse is always zero.
 	 *
-	 * @shortdesc Use this method to negate a vector.
 	 * @related scale ( )
 	 */
 	public final void negate() {
@@ -429,7 +428,6 @@ public class Vector3f
 	 * they have to be computed.
 	 *
 	 * @return float: the length of the vector
-	 * @shortdesc Calculates the length of the vector.
 	 */
 	public final float length() {
 		return (float) Math.sqrt(lengthSquared());
@@ -439,7 +437,6 @@ public class Vector3f
 	 * See length()
 	 *
 	 * @return float: the length of the vector
-	 * @shortdesc Calculates the length of the vector.
 	 */
 	public final float magnitude() {
 		return length();
@@ -459,20 +456,9 @@ public class Vector3f
 	 * @param theVectorB
 	 */
 	public final void setCross(final Vector3f theVectorA, final Vector3f theVectorB) {
-		set(theVectorA.makeCross(theVectorB));
-	}
-
-	/**
-	 * Returns the cross product of this instance and the 
-	 * specified vector. The cross product returns a
-	 * vector standing vertical on the two vectors. This instance will NOT be
-	 * modified
-	 * 
-	 * @param theVector	the other vector
-	 * @return the cross product
-	 */
-	public Vector3f makeCross(final Vector3f theVector) {
-		return clone().getCrossed(theVector);
+		set(theVectorA.v_[1] * theVectorB.v_[2] - theVectorA.v_[2] * theVectorB.v_[1],
+			theVectorA.v_[2] * theVectorB.v_[0] - theVectorA.v_[0] * theVectorB.v_[2],
+			theVectorA.v_[0] * theVectorB.v_[1] - theVectorA.v_[1] * theVectorB.v_[0]);
 	}
 	
 	/**
@@ -483,9 +469,7 @@ public class Vector3f
 	 * @param theVector	the other vector
 	 */
 	public void cross(final Vector3f theVector) {
-		set(v_[1] * theVector.v_[2] - v_[2] * theVector.v_[1],
-			v_[2] * theVector.v_[0] - v_[0] * theVector.v_[2],
-			v_[0] * theVector.v_[1] - v_[1] * theVector.v_[0]);
+		setCross(clone(), theVector);
 	}
 
 	/**
@@ -502,6 +486,19 @@ public class Vector3f
 	}
 
 	/**
+	 * Returns the cross product of this instance and the 
+	 * specified vector. The cross product returns a
+	 * vector standing vertical on the two vectors. This instance will NOT be
+	 * modified
+	 * 
+	 * @param theVector	the other vector
+	 * @return the cross product
+	 */
+	public Vector3f makeCross(final Vector3f theVector) {
+		return clone().getCrossed(theVector);
+	}
+
+	/**
 	 * Returns the cosine of the angle between two vectors. 
 	 *
 	 * @param theVector	the other vector
@@ -515,9 +512,8 @@ public class Vector3f
 	 * Returns the dot product of two vectors. The dot product is the cosinus of
 	 * the angle between two vectors
 	 *
-	 * @param theVector,
-	 *            the other vector
-	 * @return float, dot product of two vectors
+	 * @param theVector	 the other vector
+	 * @return float dot product of two vectors
 	 */
 	public final float dot(Vector3f theVector) {
 		return v_[0] * theVector.v_[0] + v_[1] * theVector.v_[1] + v_[2] * theVector.v_[2];
@@ -527,6 +523,7 @@ public class Vector3f
 	/**
 	 * Sets the vector to the given one and norms it to the length of 1
 	 *
+	 * @param theVector
 	 */
 	public final void normalize(Vector3f theVector) {
 		set(theVector);
@@ -545,6 +542,22 @@ public class Vector3f
 		v_[2] *= inverseMag;
 	}
 
+	/**
+	 * Norms the vector to the length of 1 and returns this instance
+	 * @return normalized vector
+	 */
+	public final Vector3f getNormalize() {
+		normalize();
+		return this;
+	}
+
+	/**
+	 * Returns a normalized copy of this vector
+	 * @return normalized vector
+	 */
+	public final Vector3f makeNormalize() {
+		return clone().getNormalize();
+	}
 
 
 	/**
@@ -552,10 +565,8 @@ public class Vector3f
 	 * value. The blend value has to be between 0 and 1. A blend value 0 would
 	 * change nothing, a blend value 1 would set this vector to the given one.
 	 *
-	 * @param blend
-	 *            float, blend value for interpolation
-	 * @param i_vector
-	 *            Vector3f, other vector for interpolation
+	 * @param blend float, blend value for interpolation
+	 * @param i_vector Vector3f, other vector for interpolation
 	 */
 	public void interpolate(final float blend, final Vector3f i_vector) {
 		v_[0] = v_[0] + blend * (i_vector.v_[0] - v_[0]);
@@ -576,7 +587,11 @@ public class Vector3f
 		normalize();
 	}
 
-
+	/**
+	 * Returns the squared distance of the specified vector to this vector
+	 * @param theVector
+	 * @return the squared distance
+	 */
 	public final float distanceSquared(Vector3f theVector) {
 		float dx = v_[0] - theVector.v_[0];
 		float dy = v_[1] - theVector.v_[1];
@@ -585,6 +600,11 @@ public class Vector3f
 	}
 
 
+	/**
+	 * Returns the distance of the specified vector to this vector
+	 * @param theVector
+	 * @return the distance
+	 */
 	public final float distance(Vector3f theVector) {
 		return (float) Math.sqrt(distanceSquared(theVector));
 	}
@@ -683,6 +703,26 @@ public class Vector3f
 	 }
 
 	 /**
+	  * rotate the vector around its Z Axis and return this instance
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f getRotZ(float angle){
+		 rotZ(angle);
+		 return this;
+	 }
+	 
+	 /**
+	  * rotate the vector around its Z Axis and return a new instance.
+	  * This method does NOT modify this instance.
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f makeRotZ(float angle){
+		 return clone().getRotZ(angle);
+	 }
+
+	 /**
 	  * rotate the vector around its Y Axis
 	  */
 	 public final void rotY(double r){
@@ -693,15 +733,55 @@ public class Vector3f
 	 }
 
 	 /**
+	  * rotate the vector around its Y Axis and return this instance
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f getRotY(float angle){
+		 rotY(angle);
+		 return this;
+	 }
+	 
+	 /**
+	  * rotate the vector around its Y Axis and return a new instance.
+	  * This method does NOT modify this instance.
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f makeRotY(float angle){
+		 return clone().getRotY(angle);
+	 }
+
+	 /**
 	  * rotate the vector around its X Axis
 	  */
-	 public  final void rotX(double r){
+	 public  final void rotX(float r){
 		 float y1 = v_[1] * (float)Math.cos(r) + v_[2] * (float)Math.sin(r);
 		 float z1 = v_[2] * (float)Math.cos(r) - v_[1] * (float)Math.sin(r);
 		 v_[1] = y1;
 		 v_[2] = z1;
 	 }
-
+	 
+	 /**
+	  * rotate the vector around its X Axis and return this instance
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f getRotX(float angle){
+		 rotX(angle);
+		 return this;
+	 }
+	 
+	 /**
+	  * rotate the vector around its X Axis and return a new instance.
+	  * This method does NOT modify this instance.
+	  * @param angle
+	  * @return this instance
+	  */
+	 public final Vector3f makeRotX(float angle){
+		 return clone().getRotX(angle);
+	 }
+	 
 	 public Vector3f clone() {
 		 Vector3f clone = new Vector3f(v_[0], v_[1], v_[2]);
 		 return clone;
