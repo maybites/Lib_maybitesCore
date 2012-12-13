@@ -1,0 +1,23 @@
+Lib_maybitesCore/.classpath
+Lib_maybitesCore/.externalToolBuilders/New_Builder (1).launch
+Lib_maybitesCore/.project
+Lib_maybitesCore/.settings/com.chronon.sb.browser.launcher.prefs
+Lib_maybitesCore/.settings/org.eclipse.jdt.core.prefs
+Lib_maybitesCore/bin/ch/maybites/tools/Calc.class
+Lib_maybitesCore/bin/ch/maybites/tools/Const.class
+Lib_maybitesCore/bin/ch/maybites/tools/Debugger.class
+Lib_maybitesCore/bin/ch/maybites/tools/GlobalPrefs.class
+Lib_maybitesCore/bin/ch/maybites/tools/Logger.class
+Lib_maybitesCore/bin/ch/maybites/tools/MayRandom.class
+Lib_maybitesCore/bin/ch/maybites/tools/Utils.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Linef.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Matrix4x4d.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Matrix4x4f.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Planef.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Quaternionf.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Vector3f.class
+Lib_maybitesCore/bin/ch/maybites/tools/math/la/Vector4d.class
+Lib_maybitesCore/bin/ch/maybites/tools/threedee/Frustum.class
+Lib_maybitesCore/bin/ch/maybites/tools/threedee/Node.class
+Lib_maybitesCore/bin/ch/maybites/utils/Color$HSL.class
+Lib_maybitesCore/bin/ch/maybites/utils/Color.class

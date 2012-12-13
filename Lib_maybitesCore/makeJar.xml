@@ -11,6 +11,7 @@
  		<property name="main.class.name" value=""/>
  		<property name="jar.name" value="maybitesCore.jar"/>
  		<property name="export.dir" value="/Users/maybites/Arbeiten/02_code/library/java/maybites/core"/>
+ 		<property name="createJavaDoc" value="0" />
  		
 		<path id="library-classpath">
 			<fileset dir="${libraryClasspath}" >
@@ -55,6 +56,9 @@
  			 		<copy file="COPYING.LESSER"
  			 		    todir="${project.build.dir}"/>
  				
+ 					<condition property="makeDoc">
+ 						<equals arg1="${createJavaDoc}" arg2="1"/>
+ 	 				</condition>
 
  					<antcall target="doc.build"/>
  					<antcall target="jar.build"/>
@@ -79,7 +83,7 @@
  					</jar>	
  		  		</target>
 
- 		 		<target name="doc.build">
+ 		 		<target name="doc.build" if="makeDoc">
  		 	    <!-- create the java reference of the library -->
  			 	    <javadoc bottom="processing library ${libraryName} by ${author}. ${copyright}"
  			 	 	     destdir="${project.reference.dir}"

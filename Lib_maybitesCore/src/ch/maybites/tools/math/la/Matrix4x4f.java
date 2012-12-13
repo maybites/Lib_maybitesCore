@@ -23,7 +23,7 @@ import ch.maybites.tools.threedee.Frustum;
  */
 
 /**
- * Implementation of a ROW-Oriented 4x4 matrix 
+ * Implementation of a 4x4 matrix 
  * it is suited for use in a 2D and 3D graphics rendering engine.
  * 
  * All transformations on this matrix, if not specified, are by definition
@@ -78,6 +78,7 @@ public class Matrix4x4f
 	 */
 	public Matrix4x4f (Quaternionf quat)
 	{
+		initialize();
 		set (quat);
 	}
 	
@@ -88,6 +89,7 @@ public class Matrix4x4f
 	 */
 	public Matrix4x4f (Vector3f translation)
 	{
+		initialize();
 		set(translation);
 	}
 	
@@ -100,6 +102,7 @@ public class Matrix4x4f
 	 */
 	public Matrix4x4f (float scaleX, float scaleY, float scaleZ)
 	{
+		initialize();
 		set(scaleX, scaleY, scaleZ);
 	}
 	
@@ -110,6 +113,7 @@ public class Matrix4x4f
 	 */
 	public Matrix4x4f (Frustum frust)
 	{
+		initialize();
 		if(frust.isOrtho())
 			setOrthograficMatrix(frust.getLeft(),
 				frust.getRight(), 
@@ -192,7 +196,7 @@ public class Matrix4x4f
 	 *
 	 * @param matrix  Matrix to copy.
 	 */
-	public void set (Matrix4x4f matrix)
+	public void set(Matrix4x4f matrix)
 	{
 		for (int i=0; i<16; i++)
 			m_[i] = matrix.m_[i];
@@ -337,6 +341,18 @@ public class Matrix4x4f
 	}
 	
 	/**
+	 * Sets the translation elements with the provided vector without changing
+	 * the rest of the matrix
+	 * 
+	 * @param vec
+	 */
+	public void setTranslation(Vector3f vec){
+		setElement (3, 0, vec.x());
+		setElement (3, 1, vec.y());
+		setElement (3, 2, vec.z());  
+	}
+	
+	/**
 	 * Sets a Scale Matrix from set factors
 	 * 
 	 * @param scaleX
@@ -344,7 +360,7 @@ public class Matrix4x4f
 	 * @param scaleZ
 	 */
 	public void set(float scaleX, float scaleY, float scaleZ){
-		initialize();
+		setIdentity();
 		setElement (0, 0, scaleX);
 		setElement (1, 1, scaleY);
 		setElement (2, 2, scaleZ);  
@@ -356,7 +372,6 @@ public class Matrix4x4f
 	 * @param quat  normalized Quaternion4f.
 	 */
 	public void set(Quaternionf quat){
-		initialize();
 		//quat.normalize();
 		float sqw = quat.w()*quat.w();
 		float sqx = quat.x()*quat.x();
@@ -472,6 +487,13 @@ public class Matrix4x4f
 		return true;
 	}
 
+	/**
+	 * Transposes this matrix
+	 */
+	public void transpose(){
+		Matrix4x4f trans = new Matrix4x4f(getCol());
+		set(trans);
+	}
 
 
 	/**
@@ -567,16 +589,23 @@ public class Matrix4x4f
 	 * Multiply this 4x4 matrix with the specified matrix and
 	 * store the result in this 4x4 matrix.
 	 * 
+	 * Since this Matrix is Row-Major - it is a postMultiplication
+	 * C = A x B where
+	 *
+	 * A = this instance
+	 * B = matrix
+	 * C = this instance
+	 * 
 	 * @param matrix  Matrix to multiply with.
 	 */
 	public void multiply(Matrix4x4f matrix){
 		Matrix4x4f product = new Matrix4x4f();
 
-		for (int i = 0; i < 16; i += 4) {
-			for (int j = 0; j < 4; j++) {
-				product.m_[i + j] = 0.0f;
-				for (int k = 0; k < 4; k++)
-					product.m_[i + j] += m_[i + k] * matrix.m_[k*4 + j];
+		for (int i = 0; i < 16; i += 4) { //step through rows
+			for (int j = 0; j < 4; j++) { //step through columns
+				product.m_[i + j] = 0.0f; //set value of marixvector = 0
+				for (int k = 0; k < 4; k++) // step though each Row (k) and each Column(k*4)
+					product.m_[i + j] += m_[i + k] * matrix.m_[k*4 + j]; // and add the multiplied result
 			}
 		}
 
@@ -586,7 +615,14 @@ public class Matrix4x4f
 	/**
 	 * Multiply this 4x4 matrix with the specified matrix and
 	 * store the result in this 4x4 matrix.
-	 * 
+	 * 	 
+	 * Since this Matrix is Row-Major - it is a postMultiplication
+	 * C = A x B where
+	 *
+	 * A = this instance
+	 * B = matrix
+	 * C = this instance
+	 *
 	 * @param matrix  Matrix to multiply with.
 	 * @return this instance
 	 */
@@ -601,7 +637,7 @@ public class Matrix4x4f
 	 * NOT be modified
 	 * 
 	 * @param matrix  First matrix to multiply.
-	 * @return    Product m1 * m2.
+	 * @return Product m1 * m2.
 	 */
 	public Matrix4x4f makeMultiply (Matrix4x4f matrix){
 		return clone().getMultiplied(matrix);
@@ -628,6 +664,48 @@ public class Matrix4x4f
 		return product;
 	}
 
+	/**
+	 * Transform (PreMultiply) a Point using this 4x4 matrix and return a new instance
+	 * without modifying the provided instance
+	 * 
+	 * This Method is not a mathematically correct matrix4x4 * vector3 multiplication
+	 * since it ignores the (usually unused i.e. 0) elements m03, m13 and m23
+	 * 
+	 * @param point  
+	 * @return vector
+	 */
+	public Vector3f makeTransformPoint(Vector3f point)
+	{
+		return transformPoint(point.clone());
+	}
+	
+	/**
+	 * Transform (PreMultiply) a Point using this 4x4 matrix. It applies the result
+	 * to the provided instance and also returns it.
+	 * 
+	 * This Method is not a mathematically correct matrix4x4 * vector3 multiplication
+	 * since it ignores the (usually unused i.e. 0) elements m03, m13 and m23
+	 * 
+	 * @param point  
+	 * @return point
+	 */
+	public Vector3f transformPoint(Vector3f point)
+	{
+		float x = point.x() * m_[0]  +
+				point.y() * m_[4]  +
+				point.z() * m_[8]  + m_[12];
+
+		float y = point.x() * m_[1]  +
+				point.y() * m_[5]  +
+				point.z() * m_[9]  + m_[13];
+
+		float z = point.x() * m_[2]   +
+				point.y() * m_[6]   +
+				point.z() * m_[10]  + m_[14];
+
+		point.set(x, y, z);
+		return point;
+	}
 
 
 	/**
@@ -762,43 +840,26 @@ public class Matrix4x4f
 
 
 	/**
-	 * Apply specified translation to this 4x4 matrix.
+	 * multiply the specified translation matrix with this matrix.
 	 * 
-	 * @param dx  x translation.
-	 * @param dy  y translation.
-	 * @param dz  z translation.
+	 * @param dx  x translation of translation matrix.
+	 * @param dy  y translation of translation matrix.
+	 * @param dz  z translation of translation matrix.
 	 */
-	public void translate (float dx, float dy, float dz)
+	public void translate(float dx, float dy, float dz)
 	{
-		Matrix4x4f  translationMatrix = new Matrix4x4f();
+		translate(new Vector3f(dx, dy, dz));
+	}
 
-		translationMatrix.setElement (3, 0, dx);
-		translationMatrix.setElement (3, 1, dy);
-		translationMatrix.setElement (3, 2, dz);
-
+	/**
+	 * multiply the specified translation matrix to this matrix.
+	 * 
+	 * @param vec  Vector3f  of translation matrix
+	 */
+	public void translate(Vector3f vec)
+	{
+		Matrix4x4f  translationMatrix = new Matrix4x4f(vec);
 		multiply (translationMatrix);
-	}
-
-	/**
-	 * Apply specified translation-vector to this 4x4 matrix.
-	 * 
-	 * @param vec  Vector3f
-	 */
-	public void translate (Vector3f vec)
-	{
-		translate(vec.x(), vec.y(), vec.z());
-	}
-
-
-	/**
-	 * Apply specified XY translation to this 4x4 matrix.
-	 * 
-	 * @param dx  x translation.
-	 * @param dy  y translation.
-	 */
-	public void translate (float dx, float dy)
-	{
-		translate (dx, dy, 0.0f);
 	}
 
 
@@ -998,12 +1059,7 @@ public class Matrix4x4f
 	 */
 	public void scale (float xScale, float yScale, float zScale)
 	{
-		Matrix4x4f  scalingMatrix = new Matrix4x4f();
-
-		scalingMatrix.setElement (0, 0, xScale);
-		scalingMatrix.setElement (1, 1, yScale);
-		scalingMatrix.setElement (2, 2, zScale);  
-
+		Matrix4x4f  scalingMatrix = new Matrix4x4f(xScale, yScale, zScale);
 		multiply (scalingMatrix);
 	}
 
@@ -1026,20 +1082,11 @@ public class Matrix4x4f
 	 * @param fixedPoint  Scaling origo.
 	 */
 	public void scale (float xScale, float yScale, float zScale,
-			float[] fixedPoint)
+			Vector3f fixedPoint)
 	{
-		Matrix4x4f step1 = new Matrix4x4f();
-		step1.translate (-fixedPoint[0], -fixedPoint[1], -fixedPoint[2]);
-
-		Matrix4x4f step2 = new Matrix4x4f();
-		step2.scale (xScale, yScale, zScale);
-
-		Matrix4x4f step3 = new Matrix4x4f();
-		step3.translate (fixedPoint[0], fixedPoint[1], fixedPoint[2]);
-
-		multiply (step1);
-		multiply (step2);
-		multiply (step3);
+		translate(fixedPoint.makeScale(-1.0f));
+		scale(xScale, yScale, zScale);
+		translate(fixedPoint);
 	}
 
 

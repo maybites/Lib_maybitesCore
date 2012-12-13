@@ -21,7 +21,7 @@ import java.util.Random;
  */
 
 /**
- * Implementation of a 3-element vector suited for use with
+ * Implementation of a 3-element Vector suited for use with
  * Matrix4x4
  */   
 public class Vector3f
