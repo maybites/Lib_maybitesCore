@@ -11,13 +11,13 @@
  		<property name="main.class.name" value=""/>
  		<property name="jar.name" value="maybitesCore.jar"/>
  		<property name="export.dir" value="/Users/maybites/Arbeiten/02_code/library/java/maybites/core"/>
- 		<property name="createJavaDoc" value="0" />
+ 		<property name="createJavaDoc" value="1" />
  		
 		<path id="library-classpath">
 			<fileset dir="${libraryClasspath}" >
 				<!-- #### (3) add the jar files that are required for compiling. edit name.
 				 for more include files. duplicate <include name="" /> #### -->
-				<include name="core.jar"/>
+				<!--include name="core.jar"/-->
 			</fileset>
 		</path>
 		
@@ -48,7 +48,9 @@
  			 		    <fileset dir="${project.src.dir}"/>
  			 		</copy>
 
- 			 		<copy file="${coreJar}"
+			 		<copy file="${MaxJar}"
+ 			 		    todir="${project.libs.dir}"/>
+			 		<copy file="${JitterJar}"
  			 		    todir="${project.libs.dir}"/>
 
  			 		<copy file="COPYING"
@@ -68,6 +70,7 @@
    					<copy todir="${export.dir}">
  						<fileset dir="${project.build.dir}"/>
  					</copy>
+
  		 		</target>
  		 		
  				
