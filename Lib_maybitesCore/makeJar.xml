@@ -11,7 +11,7 @@
  		<property name="main.class.name" value=""/>
  		<property name="jar.name" value="maybitesCore.jar"/>
  		<property name="export.dir" value="/Users/maybites/Arbeiten/02_code/library/java/maybites/core"/>
- 		<property name="createJavaDoc" value="0" />
+ 		<property name="createJavaDoc" value="1" />
  		
 		<path id="library-classpath">
 			<fileset dir="${libraryClasspath}" >
@@ -38,11 +38,9 @@
  		 		<property file="${project.resources.dir}/building.properties"/>
  		     	
  				<target name ="default" description="check conditions">
- 			 		<delete dir="${project.build.dir}"/>
  			 			
  					<mkdir dir="${project.build.dir}"/>
  					<mkdir dir="${project.library.dir}"/>
- 					<mkdir dir="${project.reference.dir}"/>
  			 		
  			 		<copy todir="${project.build.dir}/src">
  			 		    <fileset dir="${project.src.dir}"/>
@@ -71,7 +69,6 @@
  						<fileset dir="${project.build.dir}"/>
  					</copy>
 
- 			 		<delete dir="${project.build.dir}"/>
 		 		</target>
  		 		
  				
@@ -88,7 +85,9 @@
  		  		</target>
 
  		 		<target name="doc.build" if="makeDoc">
- 		 	    <!-- create the java reference of the library -->
+					<delete dir="${project.reference.dir}"/>
+ 					<mkdir dir="${project.reference.dir}"/>
+  		 	    <!-- create the java reference of the library -->
  			 	    <javadoc bottom="library ${libraryName} by ${author}. ${copyright}"
  			 	 	     destdir="${project.reference.dir}"
  			 	 	     verbose="false"
