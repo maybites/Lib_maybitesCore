@@ -165,7 +165,7 @@ public class DynDistributor<ObjectType, CallbackType> {
 		Iterator<DynPublication> p = publications.iterator();
 		while(p.hasNext()){
 			if(p.next().identifier.equals(publication.identifier))
-				throw new DynException("Registry name already taken: " + publication.identifier);
+				throw new DynException("Publication name already taken: " + publication.identifier);
 		}
 
 		publications.add(publication);
