@@ -11,7 +11,7 @@
  		<property name="main.class.name" value=""/>
  		<property name="jar.name" value="maybitesCore.jar"/>
  		<property name="export.dir" value="/Users/maybites/Arbeiten/02_code/library/java/maybites/core"/>
- 		<property name="createJavaDoc" value="1" />
+ 		<property name="createJavaDoc" value="0" />
  		
 		<path id="library-classpath">
 			<fileset dir="${libraryClasspath}" >
@@ -45,11 +45,6 @@
  			 		<copy todir="${project.build.dir}/src">
  			 		    <fileset dir="${project.src.dir}"/>
  			 		</copy>
-
-			 		<copy file="${MaxJar}"
- 			 		    todir="${project.libs.dir}"/>
-			 		<copy file="${JitterJar}"
- 			 		    todir="${project.libs.dir}"/>
 
  			 		<copy file="COPYING"
  			 		    todir="${project.build.dir}"/>
