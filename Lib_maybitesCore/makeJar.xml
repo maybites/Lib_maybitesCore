@@ -11,7 +11,7 @@
  		<property name="main.class.name" value=""/>
  		<property name="jar.name" value="maybitesCore.jar"/>
  		<property name="export.dir" value="/Users/maybites/Arbeiten/02_code/library/java/maybites/core"/>
- 		<property name="createJavaDoc" value="1" />
+ 		<property name="createJavaDoc" value="0" />
  		
 		<path id="library-classpath">
 			<fileset dir="${libraryClasspath}" >
@@ -88,7 +88,7 @@
 
  		 		<target name="doc.build" if="makeDoc">
  		 	    <!-- create the java reference of the library -->
- 			 	    <javadoc bottom="processing library ${libraryName} by ${author}. ${copyright}"
+ 			 	    <javadoc bottom="library ${libraryName} by ${author}. ${copyright}"
  			 	 	     destdir="${project.reference.dir}"
  			 	 	     verbose="false"
  			 	 	     stylesheetfile="${project.resources.dir}/stylesheet.css"

@@ -45,16 +45,12 @@ public class Debugger {
 	private int myLevel;
 	private boolean _showClassNames;
 	
-	static private Debugger _instance;
+	static private Debugger _instance = new Debugger(LEVEL_VERBOSE);
 
 	static public void showClassNames(){
 		
 	}
 	
-	static public void setLevelToInfo(){
-		_instance.myLevel = LEVEL_INFO;
-	}
-
 	static public void setLevelToVerbose(){
 		_instance.myLevel = LEVEL_VERBOSE;
 	}
@@ -63,6 +59,10 @@ public class Debugger {
 		_instance.myLevel = LEVEL_DEBUG;
 	}
 	
+	static public void setLevelToInfo(){
+		_instance.myLevel = LEVEL_INFO;
+	}
+
 	static public void setLevelToWarning(){
 		_instance.myLevel = LEVEL_WARNING;
 	}
@@ -75,13 +75,11 @@ public class Debugger {
 		_instance.myLevel = LEVEL_FATAL;
 	}
 	
+	/**
+	 * Get the global Debugger instance
+	 * @return
+	 */
 	static public Debugger getInstance() {
-		if (_instance == null) {
-			synchronized(GlobalPrefs.class) {
-				if (_instance == null)
-					_instance = new Debugger(LEVEL_DEBUG);
-			}
-		}
 		return _instance;
 	}
 	
@@ -92,7 +90,7 @@ public class Debugger {
 			System.out.print("from " + o.getName() + ": ");
 		System.out.println(message);
 	}
-
+	
 	private void messageErr(Class o, String message, int level){
 		System.err.print(LEVEL_MESG[level]);
 		if(o != null && _showClassNames)
@@ -100,19 +98,46 @@ public class Debugger {
 		System.err.println(message);
 	}
 
-	public void infoMessage(Class o, String message){
-		if(myLevel <= LEVEL_INFO)
-			message(o, message, LEVEL_INFO);
-	}
-
 	public void verboseMessage(Class o, String message){
 		if(myLevel <= LEVEL_VERBOSE)
 			message(o, message, LEVEL_VERBOSE);
+	}
+	
+	/**
+	 * Lowest Priority Message
+	 * @param o
+	 * @param message
+	 */
+	public static void verbose(Class o, String message){
+		getInstance().verboseMessage(o, message);
 	}
 
 	public void debugMessage(Class o, String message){
 		if(myLevel <= LEVEL_DEBUG)
 			message(o, message, LEVEL_DEBUG);
+	}
+	
+	/**
+	 * 2nd Lowest Priority Message
+	 * @param o
+	 * @param message
+	 */
+	public static void debug(Class o, String message){
+		getInstance().debugMessage(o, message);
+	}
+
+	public void infoMessage(Class o, String message){
+		if(myLevel <= LEVEL_INFO)
+			message(o, message, LEVEL_INFO);
+	}
+
+	/**
+	 * 3rd Lowest Priority Message
+	 * @param o
+	 * @param message
+	 */
+	public static void info(Class o, String message){
+		getInstance().infoMessage(o, message);
 	}
 
 	public void warningMessage(Class o, String message){
@@ -120,14 +145,41 @@ public class Debugger {
 			message(o, message, LEVEL_WARNING);
 	}
 
+	/**
+	 * Warning Message - possibly severe
+	 * @param o
+	 * @param message
+	 */
+	public static void warning(Class o, String message){
+		getInstance().warningMessage(o, message);
+	}
+
 	public void errorMessage(Class o, String message){
 		if(myLevel <= LEVEL_ERROR)
 			messageErr(o, message, LEVEL_ERROR);
+	}
+	
+	/**
+	 * Error Message - very severe
+	 * @param o
+	 * @param message
+	 */
+	public static void error(Class o, String message){
+		getInstance().errorMessage(o, message);
 	}
 
 	public void fatalMessage(Class o, String message){
 		if(myLevel <= LEVEL_FATAL)
 			messageErr(o, message, LEVEL_FATAL);
+	}
+
+	/**
+	 * Fatal Message - very severe - Application will probably crash
+	 * @param o
+	 * @param message
+	 */
+	public static void fatal(Class o, String message){
+		getInstance().fatalMessage(o, message);
 	}
 
 }
