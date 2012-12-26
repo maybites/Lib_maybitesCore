@@ -71,7 +71,8 @@
  						<fileset dir="${project.build.dir}"/>
  					</copy>
 
- 		 		</target>
+ 			 		<delete dir="${project.build.dir}"/>
+		 		</target>
  		 		
  				
  		 		<target name="jar.build">
