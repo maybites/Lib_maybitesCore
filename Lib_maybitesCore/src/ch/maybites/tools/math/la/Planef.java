@@ -68,8 +68,8 @@ public class Planef{
 	 * @param	theSecondLine	
 	 */
 	public Planef(Linef theFirstLine, Linef theSecondLine) {
-		normal = theFirstLine.direction.makeCross(theSecondLine.direction);
-		Vector3f origin = theFirstLine.theOrigin.makeAdd(theSecondLine.theOrigin);
+		normal = theFirstLine.direction.crossMake(theSecondLine.direction);
+		Vector3f origin = theFirstLine.theOrigin.addMake(theSecondLine.theOrigin);
 		origin.scale(.5f);
 		update(origin);
 	}
@@ -84,7 +84,7 @@ public class Planef{
 	public Planef(Vector3f theOrigin,
 			Vector3f thePointA,
 			Vector3f thePointB) {
-		normal = thePointA.makeSub(theOrigin).makeCross(thePointB.makeSub(theOrigin));
+		normal = thePointA.subMake(theOrigin).crossMake(thePointB.subMake(theOrigin));
 		update(theOrigin);
 	}
 
@@ -96,7 +96,7 @@ public class Planef{
 	 * @param	theVectorB	VectorB that lies in that plane
 	 */
 	public void set(Vector3f theOrigin, Vector3f theVectorA, Vector3f theVectorB) {
-		normal = theVectorA.makeCross(theVectorB);
+		normal = theVectorA.crossMake(theVectorB);
 		update(theOrigin);
 	}
 
@@ -149,7 +149,7 @@ public class Planef{
 
 		Vector3f vector = new Vector3f(line.direction);
 		vector.scale((p - normal.dot(line.theOrigin))/normal.dot(vector));
-		return line.theOrigin.makeAdd(vector);
+		return line.theOrigin.addMake(vector);
 	}
 
 	/**
@@ -163,9 +163,9 @@ public class Planef{
 		if(!intersects(thePlane)){
 			return null;
 		}
-		Vector3f direction = thePlane.getNormal().makeCross(getNormal());
+		Vector3f direction = thePlane.getNormal().crossMake(getNormal());
 		direction.normalize();
-		Vector3f point = thePlane.getOrigin().makeAdd(getOrigin());
+		Vector3f point = thePlane.getOrigin().addMake(getOrigin());
 		return new Linef(point, direction);
 	}
 
@@ -176,7 +176,7 @@ public class Planef{
 	 * @return	true if thePlane intersects with this plane
 	 */
 	public boolean intersects(Planef thePlane){
-		return (thePlane.getNormal().makeCross(getNormal()).magnitude() == 0.0f)? false: true;
+		return (thePlane.getNormal().crossMake(getNormal()).magnitude() == 0.0f)? false: true;
 	}
 
 	/**

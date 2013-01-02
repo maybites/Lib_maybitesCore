@@ -161,6 +161,7 @@ public class DynDistributor<ObjectType, CallbackType> {
 	 * @throws DynException  if the Publications identifier has already been taken
 	 */
 	public void publish(DynPublication publication) throws DynException{
+//		Debugger.debug(getClass(), "try to publish publication: " + publication.getIdentifier());
 		//First check if this pointers name has been already taken
 		Iterator<DynPublication> p = publications.iterator();
 		while(p.hasNext()){
@@ -215,20 +216,48 @@ public class DynDistributor<ObjectType, CallbackType> {
 	
 	/**
 	 * Recall and remove the Publication with the provided identifier from the System 
-	 * @param objectname
+	 * @param publicationname
 	 */
-	public void recall(String objectname){
+	public void recall(String publicationname){
 		Iterator<DynPublication> i = publications.iterator();
 		while(i.hasNext()){
 			DynPublication publication = i.next();
-			if(publication.identifier.equals(objectname)){
+			if(publication.identifier.equals(publicationname)){
 				while(publication.hasSubscriptions()){
 					DynSubscription subscription = publication.removeNextSubscription();
 					subscription.subscriber.publicationDisonnected(name, subscription);
 					subscription.set(null);
 				}
-				publications.remove(publication);
+				i.remove();
 			}
 		}
+	}	
+	
+	/**
+	 * Checks if a Publication with the provided identifier has already been published
+	 * @param publicationname
+	 */
+	public boolean isPublished(String publicationname){
+		Iterator<DynPublication> i = publications.iterator();
+		while(i.hasNext()){
+			DynPublication publication = i.next();
+			if(publication.identifier.equals(publicationname)){
+				return true;
+			}
+		}
+		return false;
+	}	
+	
+	/**
+	 * Returns all the published publication names
+	 * @return String Array of all publication names
+	 */
+	public String[] getPublicationNames(){
+		String[] ret = new String[publications.size()];
+		for(int i = 0; i < publications.size(); i++){
+			DynPublication publication = publications.get(i);
+			ret[i] = publication.getIdentifier();
+		}
+		return ret;
 	}	
 }

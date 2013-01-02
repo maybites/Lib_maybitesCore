@@ -129,13 +129,13 @@ public class Node {
 		localTransfromMatrix.translate(position);
 		
 		if(scale.x()>0){
-			axis[0] = localTransfromMatrix.getRowAsVector(0).getScaled(1.0f / scale.x());
+			axis[0] = localTransfromMatrix.getRowAsVector(0).scale(1.0f / scale.x());
 		}
 		if(scale.y()>0){
-			axis[1] = localTransfromMatrix.getRowAsVector(1).getScaled(1.0f / scale.y());
+			axis[1] = localTransfromMatrix.getRowAsVector(1).scale(1.0f / scale.y());
 		}
 		if(scale.z()>0){
-			axis[2] = localTransfromMatrix.getRowAsVector(2).getScaled(1.0f / scale.z());
+			axis[2] = localTransfromMatrix.getRowAsVector(2).scale(1.0f / scale.z());
 		}
 	}
 

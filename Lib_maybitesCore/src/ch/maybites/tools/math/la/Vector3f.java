@@ -187,17 +187,8 @@ public class Vector3f
 	 * @param theVector	the Vector to be added
 	 * @return the addition
 	 */
-	public final Vector3f makeAdd(Vector3f theVector) {
-		return clone().getAdded(theVector);
-	}
-
-	/**
-	 * Adds the specified Vector to this instance. This method modifies this instance.
-	 * 
-	 * @param theVector	the Vector to be added
-	 */
-	public final void add(Vector3f theVector) {
-		setAdd(this, theVector);
+	public final Vector3f addMake(Vector3f theVector) {
+		return clone().add(theVector);
 	}
 	
 	/**
@@ -206,7 +197,7 @@ public class Vector3f
 	 * @param theVector	the Vector to be added
 	 * @return the addition
 	 */
-	public final Vector3f getAdded(Vector3f theVector) {
+	public final Vector3f add(Vector3f theVector) {
 		setAdd(this, theVector);
 		return this;
 	}
@@ -249,14 +240,6 @@ public class Vector3f
 		v_[2] = theVectorA.v_[2] - theVectorB.v_[2];
 	}
 
-	/**
-	 * Substract the specified vector from this instance. This method modifies this instance.
-	 * 
-	 * @param theVectorA	of class Vector3f
-	 */
-	public final void sub(Vector3f theVectorA) {
-		setSub(this, theVectorA);
-	}
 	
 	/**
 	 * Substract the specified vector from this instance and return it. This method modifies this instance.
@@ -264,8 +247,10 @@ public class Vector3f
 	 * @param theVectorA	of class Vector3f
 	 * @return this instance
 	 */
-	public final Vector3f getSub(Vector3f theVectorA) {
-		setSub(this, theVectorA);
+	public final Vector3f sub(Vector3f theVectorA) {
+		v_[0] -= theVectorA.v_[0];
+		v_[1] -= theVectorA.v_[1];
+		v_[2] -= theVectorA.v_[2];
 		return this;
 	}
 
@@ -279,8 +264,8 @@ public class Vector3f
 	 * @param theVector	the Vector to be substracted
 	 * @return the subtraction
 	 */
-	public final Vector3f makeSub(Vector3f theVector) {
-		return clone().getSub(theVector);
+	public final Vector3f subMake(Vector3f theVector) {
+		return clone().sub(theVector);
 	}
 	
 
@@ -296,25 +281,6 @@ public class Vector3f
 		scale( -1);
 	}
 
-
-	/**
-	 * Use this method to scale a vector. To scale a vector each of its
-	 * coordinates is multiplied with the given scalar. The result is a vector
-	 * that is parallel with its origin, with a different length and possibly
-	 * opposite direction.<br>
-	 * You can also scale a vector with another vector, in this case each coord
-	 * of the vector is multiplied with related coord of the given vector.<br>
-	 * Another possibillity is to set and scale the vector, this means the
-	 * vector is set to the given vector multiplied with the given scalar.
-	 *
-	 * @param theScalar
-	 *            float or int: the value the vector is scaled with
-	 * @related divide ( )
-	 * @related negate ( )
-	 */
-	public final void scale(final float theScalar) {
-		scale(theScalar, theScalar, theScalar);
-	}
 
 
 	/**
@@ -333,33 +299,29 @@ public class Vector3f
 	 * @param theX float
 	 * @param theY float
 	 * @param theZ float
+	 * @return this instance
 	 */
-	public final void scale(float theX, float theY, float theZ) {
+	public final Vector3f scale(float theX, float theY, float theZ) {
 		v_[0] *= theX;
 		v_[1] *= theY;
 		v_[2] *= theZ;
-	}
-
-	/**
-	 *	Scales this instance with the specified values
-	 *
-	 * @param theX float
-	 * @param theY float
-	 * @param theZ float
-	 * @return this instance
-	 */
-	public final Vector3f getScaled(float theX, float theY, float theZ) {
-		scale(theX, theY, theZ);
 		return this;
 	}
 	
 	/**
-	 *	Scales this instance with the scalar
+	 * Use this method to scale a vector. To scale a vector each of its
+	 * coordinates is multiplied with the given scalar. The result is a vector
+	 * that is parallel with its origin, with a different length and possibly
+	 * opposite direction.<br>
+	 * You can also scale a vector with another vector, in this case each coord
+	 * of the vector is multiplied with related coord of the given vector.<br>
+	 * Another possibillity is to set and scale the vector, this means the
+	 * vector is set to the given vector multiplied with the given scalar.
 	 *
 	 * @param scalar float
 	 * @return this instance
 	 */
-	public final Vector3f getScaled(float scalar) {
+	public final Vector3f scale(float scalar) {
 		scale(scalar);
 		return this;
 	}
@@ -371,8 +333,8 @@ public class Vector3f
 	 * @param scalar float
 	 * @return a new instance
 	 */
-	public final Vector3f makeScale(float scalar) {
-		return clone().getScaled(scalar);
+	public final Vector3f scaleMake(float scalar) {
+		return clone().scale(scalar);
 	}
 
 	/**
@@ -384,37 +346,46 @@ public class Vector3f
 	 * @param theZ float
 	 * @return a new instance
 	 */
-	public final Vector3f makeScale(float theX, float theY, float theZ) {
-		return clone().getScaled(theX, theY, theZ);
+	public final Vector3f scaleMake(float theX, float theY, float theZ) {
+		return clone().scale(theX, theY, theZ);
 	}
-
 
 	/**
 	 * @param theScalar
 	 *            float or int: value the given vector is scaled with
 	 * @param theVector
 	 *            Vector3f: vector the vector is set to
+	 * @return this instance
 	 */
-	public final void scale(final float theScalar, final Vector3f theVector) {
+	public final Vector3f scale(final float theScalar, final Vector3f theVector) {
 		v_[0] = theScalar * theVector.v_[0];
 		v_[1] = theScalar * theVector.v_[1];
 		v_[2] = theScalar * theVector.v_[2];
+		return this;
 	}
 
 	/**
-	 * Dividing is nearly the the same as scaling, except
+	 * Dividing is the the same as scaling
 	 *
 	 * @param theDivisor
+	 * @return this instance
 	 */
-	public final void divide(final float theDivisor) {
+	public final Vector3f divide(final float theDivisor) {
 		scale(1f / theDivisor);
+		return this;
 	}
 
-
-	public final void divide(final Vector3f theVector) {
+	/**
+	 * Dividing is the the same as scaling
+	 *
+	 * @param theDivisor
+	 * @return this instance
+	 */
+	public final Vector3f divide(final Vector3f theVector) {
 		v_[0] /= theVector.v_[0];
 		v_[1] /= theVector.v_[1];
 		v_[2] /= theVector.v_[2];
+		return this;
 	}
 
 	public final float lengthSquared() {
@@ -461,16 +432,6 @@ public class Vector3f
 			theVectorA.v_[0] * theVectorB.v_[1] - theVectorA.v_[1] * theVectorB.v_[0]);
 	}
 	
-	/**
-	 * This vector will be crossed with the specified vector and the result will be
-	 * stored in this instance. The cross product returns a
-	 * vector standing vertical on the two vectors. 
-	 * 
-	 * @param theVector	the other vector
-	 */
-	public void cross(final Vector3f theVector) {
-		setCross(clone(), theVector);
-	}
 
 	/**
 	 * This vector will be crossed with the specified vector and the result will be
@@ -480,8 +441,8 @@ public class Vector3f
 	 * @param theVector	the other vector
 	 * @return this modified instance
 	 */
-	public Vector3f getCrossed(final Vector3f theVector) {
-		cross(theVector);
+	public Vector3f cross(final Vector3f theVector) {
+		setCross(clone(), theVector);
 		return this;
 	}
 
@@ -494,8 +455,8 @@ public class Vector3f
 	 * @param theVector	the other vector
 	 * @return the cross product
 	 */
-	public Vector3f makeCross(final Vector3f theVector) {
-		return clone().getCrossed(theVector);
+	public Vector3f crossMake(final Vector3f theVector) {
+		return clone().cross(theVector);
 	}
 
 	/**
@@ -524,30 +485,23 @@ public class Vector3f
 	 * Sets the vector to the given one and norms it to the length of 1
 	 *
 	 * @param theVector
+	 * @return normalized vector
 	 */
-	public final void normalize(Vector3f theVector) {
+	public final Vector3f normalize(Vector3f theVector) {
 		set(theVector);
 		normalize();
-	}
-
-
-	/**
-	 * Norms the vector to the length of 1
-	 *
-	 */
-	public final void normalize() {
-		float inverseMag = 1.0f / magnitude();
-		v_[0] *= inverseMag;
-		v_[1] *= inverseMag;
-		v_[2] *= inverseMag;
+		return this;
 	}
 
 	/**
 	 * Norms the vector to the length of 1 and returns this instance
 	 * @return normalized vector
 	 */
-	public final Vector3f getNormalize() {
-		normalize();
+	public final Vector3f normalize() {
+		float inverseMag = 1.0f / magnitude();
+		v_[0] *= inverseMag;
+		v_[1] *= inverseMag;
+		v_[2] *= inverseMag;
 		return this;
 	}
 
@@ -555,8 +509,8 @@ public class Vector3f
 	 * Returns a normalized copy of this vector
 	 * @return normalized vector
 	 */
-	public final Vector3f makeNormalize() {
-		return clone().getNormalize();
+	public final Vector3f normalizeMake() {
+		return clone().normalize();
 	}
 
 
@@ -691,24 +645,16 @@ public class Vector3f
 		 }
 	 }
 
-
-	 /**
-	  * rotate the vector around its Z Axis
-	  */
-	 public final void rotZ(double r){
-		 float x1 = v_[0] * (float)Math.cos(r) + v_[1] * (float)Math.sin(r);
-		 float y1 = v_[1] * (float)Math.cos(r) - v_[0] * (float)Math.sin(r);
-		 v_[0] = x1;
-		 v_[1] = y1;
-	 }
-
 	 /**
 	  * rotate the vector around its Z Axis and return this instance
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f getRotZ(float angle){
-		 rotZ(angle);
+	 public final Vector3f rotZ(float angle){
+		 float x1 = v_[0] * (float)Math.cos(angle) + v_[1] * (float)Math.sin(angle);
+		 float y1 = v_[1] * (float)Math.cos(angle) - v_[0] * (float)Math.sin(angle);
+		 v_[0] = x1;
+		 v_[1] = y1;
 		 return this;
 	 }
 	 
@@ -718,27 +664,20 @@ public class Vector3f
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f makeRotZ(float angle){
-		 return clone().getRotZ(angle);
+	 public final Vector3f rotZ_Make(float angle){
+		 return clone().rotZ(angle);
 	 }
-
-	 /**
-	  * rotate the vector around its Y Axis
-	  */
-	 public final void rotY(double r){
-		 float x1 = v_[0] * (float)Math.cos(r) - v_[2] * (float)Math.sin(r);
-		 float z1 = v_[2] * (float)Math.cos(r) + v_[0] * (float)Math.sin(r);
-		 v_[0] = x1;
-		 v_[2] = z1;
-	 }
-
+	 
 	 /**
 	  * rotate the vector around its Y Axis and return this instance
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f getRotY(float angle){
-		 rotY(angle);
+	 public final Vector3f rotY(float angle){
+		 float x1 = v_[0] * (float)Math.cos(angle) - v_[2] * (float)Math.sin(angle);
+		 float z1 = v_[2] * (float)Math.cos(angle) + v_[0] * (float)Math.sin(angle);
+		 v_[0] = x1;
+		 v_[2] = z1;
 		 return this;
 	 }
 	 
@@ -748,18 +687,8 @@ public class Vector3f
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f makeRotY(float angle){
-		 return clone().getRotY(angle);
-	 }
-
-	 /**
-	  * rotate the vector around its X Axis
-	  */
-	 public  final void rotX(float r){
-		 float y1 = v_[1] * (float)Math.cos(r) + v_[2] * (float)Math.sin(r);
-		 float z1 = v_[2] * (float)Math.cos(r) - v_[1] * (float)Math.sin(r);
-		 v_[1] = y1;
-		 v_[2] = z1;
+	 public final Vector3f rotY_Make(float angle){
+		 return clone().rotY(angle);
 	 }
 	 
 	 /**
@@ -767,8 +696,11 @@ public class Vector3f
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f getRotX(float angle){
-		 rotX(angle);
+	 public final Vector3f rotX(float angle){
+		 float y1 = v_[1] * (float)Math.cos(angle) + v_[2] * (float)Math.sin(angle);
+		 float z1 = v_[2] * (float)Math.cos(angle) - v_[1] * (float)Math.sin(angle);
+		 v_[1] = y1;
+		 v_[2] = z1;
 		 return this;
 	 }
 	 
@@ -778,8 +710,8 @@ public class Vector3f
 	  * @param angle
 	  * @return this instance
 	  */
-	 public final Vector3f makeRotX(float angle){
-		 return clone().getRotX(angle);
+	 public final Vector3f rotX_Make(float angle){
+		 return clone().rotX(angle);
 	 }
 	 
 	 public Vector3f clone() {

@@ -36,14 +36,25 @@ public class Linef{
 	/**
 	 * Creates a line in theOrigin with its direction
 	 * 
-	 * @param	theOrigin	the reference point of that line
-	 * @param	theDirection	the direction vector of that line
+	 * @param	_theOrigin	the reference point of that line
+	 * @param	_theDirection	the direction vector of that line
 	 */
-	public Linef(Vector3f theOrigin, Vector3f theDirection) {
-		theOrigin = new Vector3f(theOrigin);
-		direction = new Vector3f(theDirection);
+	public Linef(Vector3f _theOrigin, Vector3f _theDirection) {
+		theOrigin = new Vector3f(_theOrigin);
+		direction = new Vector3f(_theDirection);
 	}
-	
+
+	/**
+	 * Creates a line defined by a float array with 6 values. The first three
+	 * values define x1,y1,z1 of the first point, the second three values define
+	 * x2,y2,z2 of the second point.
+	 * 
+	 * @param twoPoints - 6 indices float array [x1,y1,z1,x2,y2,z2]
+	 */
+	public Linef(float[] twoPoints) {
+		set(twoPoints);
+	}
+
 	/**
 	 * Creates a copy of a line
 	 * 
@@ -57,14 +68,25 @@ public class Linef{
 	/**
 	 * sets the line defined by two point: theOrigin and another point
 	 * 
-	 * @param	theOrigin		the reference point in that line
-	 * @param	theOtherPoint	the other point of that line
+	 * @param	_theOrigin		the reference point in that line
+	 * @param	_theOtherPoint	the other point of that line
 	 */
-	public void set(Vector3f theOrigin, Vector3f theOtherPoint) {
-		theOrigin = new Vector3f(theOrigin);
-		direction = theOtherPoint.makeSub(theOrigin);
+	public void set(Vector3f _theOrigin, Vector3f _theOtherPoint) {
+		theOrigin = new Vector3f(_theOrigin);
+		direction = _theOtherPoint.subMake(_theOrigin);
 	}
 
+	/**
+	 * Sets the line defined by a float array with 6 values. The first three
+	 * values define x1,y1,z1 of the first point, the second three values define
+	 * x2,y2,z2 of the second point.
+	 * 
+	 * @param twoPoints - 6 indices float array
+	 */
+	public void set(float[] twoPoints){
+		set(new Vector3f(twoPoints[0], twoPoints[1], twoPoints[2]), new Vector3f(twoPoints[3], twoPoints[4], twoPoints[5]));
+	}
+	
 	/**
 	 * returns another point on this line
 	 * it is the result of a vector addition of theOrigin and the direction
@@ -72,7 +94,7 @@ public class Linef{
 	 * @return	theOtherPoint	the other point on that line
 	 */
 	protected Vector3f theOtherPoint(){
-		return theOrigin.makeAdd(direction);
+		return theOrigin.addMake(direction);
 	}
 
 	
@@ -80,8 +102,8 @@ public class Linef{
 	 * This method sets theOrigin closest to the space origin.
 	 */
 	public void originize(){
-		Vector3f unity = theOrigin.makeCross(direction);
-		Vector3f center = unity.makeCross(direction);
+		Vector3f unity = theOrigin.crossMake(direction);
+		Vector3f center = unity.crossMake(direction);
 		center.normalize();
 		center.scale(center.angle(theOrigin)*theOrigin.magnitude());
 		theOrigin = center;
@@ -94,8 +116,8 @@ public class Linef{
 	 * @return	distance vector
 	 */
 	public Vector3f getDistanceVector(Linef line){
-		Vector3f dirVW = line.direction.makeCross(direction);
-		Vector3f r0s = line.theOrigin.makeSub(theOrigin);
+		Vector3f dirVW = line.direction.crossMake(direction);
+		Vector3f r0s = line.theOrigin.subMake(theOrigin);
 		if(dirVW.magnitude() != 0.0f){
 			dirVW.normalize();
 			dirVW.scale((float)Math.abs(dirVW.dot(r0s)));
@@ -106,7 +128,7 @@ public class Linef{
 		Linef lineB = new Linef(line);
 		lineA.originize();
 		lineB.originize();
-		Vector3f diff = lineB.theOrigin.makeSub(lineA.theOrigin);
+		Vector3f diff = lineB.theOrigin.subMake(lineA.theOrigin);
 		return diff;
 	}
 	
@@ -117,7 +139,7 @@ public class Linef{
 	 * @return	true if parallel
 	 */
 	public boolean isParallel(Linef otherLine){
-		Vector3f dirVW = direction.makeCross(otherLine.direction);
+		Vector3f dirVW = direction.crossMake(otherLine.direction);
 		return (dirVW.magnitude() == 0.0f)? true: false;
 	}
 	
@@ -138,11 +160,11 @@ public class Linef{
 	 * @return	distance vector
 	 */
 	public Vector3f getDistanceVector(Vector3f point){
-		Vector3f ret = point.makeSub(theOrigin);
+		Vector3f ret = point.subMake(theOrigin);
 		Vector3f dir = new Vector3f(direction);
 		float scale = dir.dot(ret) / (dir.magnitude() * dir.magnitude());
 		dir.scale(scale);
-		ret.setSub(ret, dir);
+		ret.sub(dir);
 		return ret;
 	}
 
@@ -153,8 +175,7 @@ public class Linef{
 	 * @return	distance
 	 */
 	public float getDistance(Vector3f point){
-		Vector3f temp = point.makeSub(theOrigin);
-		temp.setCross(temp, direction);
+		Vector3f temp = point.subMake(theOrigin).cross(direction);
 		return temp.magnitude() / direction.magnitude();
 	}
 

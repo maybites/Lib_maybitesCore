@@ -1084,7 +1084,7 @@ public class Matrix4x4f
 	public void scale (float xScale, float yScale, float zScale,
 			Vector3f fixedPoint)
 	{
-		translate(fixedPoint.makeScale(-1.0f));
+		translate(fixedPoint.scaleMake(-1.0f));
 		scale(xScale, yScale, zScale);
 		translate(fixedPoint);
 	}

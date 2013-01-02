@@ -83,22 +83,34 @@ public class Debugger {
 		return _instance;
 	}
 	
-	
-	private void message(Class o, String message, int level){
+	private void message(String _class, String message, int level){
 		System.out.print(LEVEL_MESG[level]);
-		if(o != null && _showClassNames)
-			System.out.print("from " + o.getName() + ": ");
+		if(_class != null && _showClassNames)
+			System.out.print("from " + _class + ": ");
 		System.out.println(message);
 	}
 	
-	private void messageErr(Class o, String message, int level){
+	private void message(Class o, String message, int level){
+		message(o.getName(), message, level);
+	}
+	
+	private void messageErr(String _class, String message, int level){
 		System.err.print(LEVEL_MESG[level]);
-		if(o != null && _showClassNames)
-			System.err.print("from " + o.getName() + ": ");
+		if(_class != null && _showClassNames)
+			System.err.print("from " + _class + ": ");
 		System.err.println(message);
 	}
 
+	private void messageErr(Class o, String message, int level){
+		messageErr(o.getName(), message, level);
+	}
+
 	public void verboseMessage(Class o, String message){
+		if(myLevel <= LEVEL_VERBOSE)
+			message(o, message, LEVEL_VERBOSE);
+	}
+	
+	public void verboseMessage(String o, String message){
 		if(myLevel <= LEVEL_VERBOSE)
 			message(o, message, LEVEL_VERBOSE);
 	}
@@ -109,6 +121,10 @@ public class Debugger {
 	 * @param message
 	 */
 	public static void verbose(Class o, String message){
+		getInstance().verboseMessage(o, message);
+	}
+	
+	public static void verbose(String o, String message){
 		getInstance().verboseMessage(o, message);
 	}
 
@@ -145,12 +161,21 @@ public class Debugger {
 			message(o, message, LEVEL_WARNING);
 	}
 
+	public void warningMessage(String o, String message){
+		if(myLevel <= LEVEL_WARNING)
+			message(o, message, LEVEL_WARNING);
+	}
+
 	/**
 	 * Warning Message - possibly severe
 	 * @param o
 	 * @param message
 	 */
 	public static void warning(Class o, String message){
+		getInstance().warningMessage(o, message);
+	}
+	
+	public static void warning(String o, String message){
 		getInstance().warningMessage(o, message);
 	}
 
