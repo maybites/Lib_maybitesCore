@@ -73,10 +73,7 @@ public class Quaternionf {
 	 */
 	public Quaternionf(float theX, float theY, float theZ, float theW) {
 		reset();
-		v_[0] = theX;
-		v_[1] = theY;
-		v_[2] = theZ;
-		v_[3] = theW;
+		set(theX, theY, theZ, theW);
 	}
 
 	public float magnitude(){
@@ -161,6 +158,13 @@ public class Quaternionf {
 		v_[0] = theVector3f.x();
 		v_[1] = theVector3f.y();
 		v_[2] = theVector3f.z();
+		v_[3] = theW;
+	}
+
+	public void set(float theX, float theY, float theZ, float theW) {
+		v_[0] = theX;
+		v_[1] = theY;
+		v_[2] = theZ;
 		v_[3] = theW;
 	}
 
@@ -257,22 +261,14 @@ public class Quaternionf {
 		v_[2] = theA.w() * theB.z() + theA.x() * theB.y() - theA.y() * theB.x() + theA.z() * theB.w();
 		v_[3] = theA.w() * theB.w() - theA.x() * theB.x() - theA.y() * theB.y() - theA.z() * theB.z();
 	}
-	
-	/**
-	 * Multiply this quaternion with the specified quaternion
-	 * @param theA
-	 */
-	public void multiply(Quaternionf theA) {
-		setMultiply(clone(), theA);
-	}
-	
+		
 	/**
 	 * Multiply this quaternion with the specified quaternion and return this instance
 	 * @param theA
 	 * @return this instance
 	 */
-	public Quaternionf getMultiplied(Quaternionf theA) {
-		multiply(theA);
+	public Quaternionf multiply(Quaternionf theA) {
+		setMultiply(clone(), theA);
 		return this;
 	}
 	
@@ -282,10 +278,45 @@ public class Quaternionf {
 	 * @param theA
 	 * @return the new instance of a quaternion
 	 */
-	public Quaternionf makeMultiply(Quaternionf theA) {
-		return clone().getMultiplied(theA);
+	public Quaternionf multiplyMake(Quaternionf theA) {
+		return clone().multiply(theA);
 	}
 
+	/**
+	 * Scales this quaternion and returns this instance
+	 * @param scale
+	 * @return
+	 */
+	public Quaternionf scale(float scale){
+		v_[0] *= scale;
+		v_[1] *= scale;
+		v_[2] *= scale;
+		v_[3] *= scale;
+		return this;
+	}
+	
+	/**
+	 * Conjugates this Quaternion (changes the sign of the x, y and z values)
+	 * 
+	 * @return this instance
+	 */
+	public Quaternionf conjugate(){
+		v_[0] *= -1;
+		v_[1] *= -1;
+		v_[2] *= -1;
+		return this;
+	}
+	
+	/**
+	 * Conjugates this Quaternion (changes the sign of the x, y and z values) and returns 
+	 * the result as a new Instance without modifying this instance
+	 * 
+	 * @return new instance
+	 */
+	public Quaternionf conjugateMake(){
+		return clone().conjugate();
+	}
+	
 	/**
 	 * Returns the Euler angles inside a vector in degrees
 	 * 

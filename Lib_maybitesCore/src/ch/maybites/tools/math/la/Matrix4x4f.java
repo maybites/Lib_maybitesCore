@@ -34,7 +34,12 @@ public class Matrix4x4f
 {
 	private float[]  m_;  // of 16
 
+	private static final int X = 0;
+	private static final int Y = 1;
+	private static final int Z = 2;
+	private static final int W = 3;
 
+	private final double SQRTHALF = 0.7071067811865475244;
 
 	/**
 	 * Construct a 4x4 identity matrix.
@@ -81,7 +86,7 @@ public class Matrix4x4f
 		initialize();
 		set (quat);
 	}
-	
+
 	/**
 	 * Construct a Translation matrix from the specified Vector.
 	 * 
@@ -92,7 +97,7 @@ public class Matrix4x4f
 		initialize();
 		set(translation);
 	}
-	
+
 	/**
 	 * Construct a Scale matrix from the specified factors.
 	 * 
@@ -105,7 +110,7 @@ public class Matrix4x4f
 		initialize();
 		set(scaleX, scaleY, scaleZ);
 	}
-	
+
 	/**
 	 * Construct a 4x4 frustum matrix from the specified frustum.
 	 * 
@@ -116,11 +121,11 @@ public class Matrix4x4f
 		initialize();
 		if(frust.isOrtho())
 			setOrthograficMatrix(frust.getLeft(),
-				frust.getRight(), 
-				frust.getBottom(), 
-				frust.getTop(), 
-				frust.getNear(), 
-				frust.getFar());
+					frust.getRight(), 
+					frust.getBottom(), 
+					frust.getTop(), 
+					frust.getNear(), 
+					frust.getFar());
 		else
 			setPerspectiveMatrix(frust.getLeft(),
 					frust.getRight(), 
@@ -128,7 +133,7 @@ public class Matrix4x4f
 					frust.getTop(), 
 					frust.getNear(), 
 					frust.getFar());
-			
+
 	}
 
 
@@ -288,7 +293,7 @@ public class Matrix4x4f
 	public void setPerspectiveMatrix(float left, float right,
 			float bottom, float top,
 			float zNear, float zFar){
-		
+
 		float A = (right+left)/(right-left);
 		float B = (top+bottom)/(top-bottom);
 		float C = -(zFar+zNear)/(zFar-zNear);
@@ -302,7 +307,7 @@ public class Matrix4x4f
 		setElement(2, 3, -1.0f);
 		setElement(3, 2, D);
 	}
-	
+
 	/**
 	 * Sets this matrix as a orthografic projection matrix
 	 * @param left
@@ -316,9 +321,9 @@ public class Matrix4x4f
 			float bottom, float top,
 			float zNear, float zFar){
 
-	    float tx = -(right+left)/(right-left);
-	    float ty = -(top+bottom)/(top-bottom);
-	    float tz = -(zFar+zNear)/(zFar-zNear);
+		float tx = -(right+left)/(right-left);
+		float ty = -(top+bottom)/(top-bottom);
+		float tz = -(zFar+zNear)/(zFar-zNear);
 		initialize();
 		setElement(0, 0, 2.0f/(right-left));
 		setElement(1, 1, 2.0f/(top-bottom));
@@ -339,7 +344,7 @@ public class Matrix4x4f
 		setElement (3, 1, vec.y());
 		setElement (3, 2, vec.z());  
 	}
-	
+
 	/**
 	 * Sets the translation elements with the provided vector without changing
 	 * the rest of the matrix
@@ -351,7 +356,7 @@ public class Matrix4x4f
 		setElement (3, 1, vec.y());
 		setElement (3, 2, vec.z());  
 	}
-	
+
 	/**
 	 * Sets a Scale Matrix from set factors
 	 * 
@@ -365,7 +370,7 @@ public class Matrix4x4f
 		setElement (1, 1, scaleY);
 		setElement (2, 2, scaleZ);  
 	}
-	
+
 	/**
 	 * Sets Rotation Matrix from a normalized Quaternion.
 	 * 
@@ -678,7 +683,7 @@ public class Matrix4x4f
 	{
 		return transformPoint(point.clone());
 	}
-	
+
 	/**
 	 * Transform (PreMultiply) a Point using this 4x4 matrix. It applies the result
 	 * to the provided instance and also returns it.
@@ -1072,7 +1077,7 @@ public class Matrix4x4f
 	{
 		scale(scale.x(), scale.y(), scale.z());
 	}
-	
+
 	/**
 	 * Apply scaling relative to a fixed point to this 4x4 matrix.
 	 * 
@@ -1330,6 +1335,751 @@ public class Matrix4x4f
 		multiply (matrix);
 	}
 
+	/**
+	 * Decompose this Matrix into a translsation vector, a scale vector and a
+	 * quaternion rotation
+	 * 
+	 * @param translation
+	 * @param rotation
+	 * @param scale
+	 * @param so
+	 */
+	public void decompose( Vector3f translation,
+			Quaternionf rotation,
+			Vector3f scale,
+			Quaternionf so ){
+
+		AffineParts parts = new AffineParts();
+		double[][] hmatrix = new double[4][4];
+
+		// Transpose copy of LTW
+		for ( int i =0; i<4; i++){
+			for ( int j=0; j<4; j++){
+				hmatrix[i][j] = this.getElement(j, i);
+			}
+		}
+
+		decompAffine(hmatrix, parts);
+
+		float mul = 1.0f;
+		if (parts.translation.getElement(W) != 0.0)
+			mul = 1.0f / (float)parts.translation.getElement(W);
+
+		translation.setX((float)parts.translation.getElement(X) * mul);
+		translation.setY((float)parts.translation.getElement(Y) * mul);
+		translation.setZ((float)parts.translation.getElement(Z) * mul);
+
+		rotation.set(parts.rotation.x(), parts.rotation.y(), parts.rotation.z(), parts.rotation.w());
+
+		mul = 1.0f;
+		if (parts.k.w() != 0.0)
+			mul = 1.0f / parts.k.w();
+
+		// mul be sign of determinant to support negative scales.
+		mul *= parts.f;
+		scale.setX(parts.k.x() * mul);
+		scale.setY(parts.k.y() * mul);
+		scale.setZ(parts.k.z() * mul);
+
+		so.set(parts.stretch.x(), parts.stretch.y(), parts.stretch.z(), parts.stretch.w());
+	}
+
+	/* Decompose 4x4 affine matrix A as TFRUK(U transpose), where t contains the
+	 * translation components, q contains the rotation R, u contains U, k contains
+	 * scale factors, and f contains the sign of the determinant.
+	 * Assumes A transforms column vectors in right-handed coordinates.
+	 * See Ken Shoemake and Tom Duff. Matrix Animation and Polar Decomposition.
+	 * Proceedings of Graphics Interface 1992.
+	 */
+	private void decompAffine(double[][] A, AffineParts parts)
+	{
+		double[][] Q = new double[4][4];
+		double[][] S = new double[4][4]; 
+		double[][] U = new double[4][4];
+		Quaternionf p;
+
+		//Translation component.
+		parts.translation = new Vector4d(A[X][W], A[Y][W], A[Z][W], 0);
+		double det = polarDecomp(A, Q, S);
+		if (det < 0){
+			mat_copy(Q, "=", mat_mult(Q, -1), 3);
+			parts.f = -1f;
+		}
+		else
+			parts.f = 1;
+
+		parts.rotation = quatFromMatrix(Q);
+		parts.k = spectDecomp(S, U);
+		parts.stretch = quatFromMatrix(U);
+		p = snuggle(parts.stretch, parts.k);
+		parts.stretch.multiply(p);
+	}
+
+	private class AffineParts{
+
+		Vector4d translation;     // t Translation Component;
+		Quaternionf rotation;           // q Essential Rotation
+		Quaternionf stretch;          // u Stretch rotation
+		Quaternionf k;          //Sign of determinant
+		double f;          // Sign of determinant
+
+		AffineParts(){
+			;
+		}
+	}
+
+
+	/* Given a unit quaternion, q, and a scale vector, k, find a unit quaternion, p,
+	 * which permutes the axes and turns freely in the plane of duplicate scale
+	 * factors, such that q p has the largest possible w component, i.e. the
+	 * smallest possible angle. Permutes k's components to go with q p instead of q.
+	 * See Ken Shoemake and Tom Duff. Matrix Animation and Polar Decomposition.
+	 * Proceedings of Graphics Interface 1992. Details on p. 262-263.
+	 */
+	private Quaternionf snuggle(Quaternionf q, Quaternionf k)
+	{
+
+		Quaternionf p = new Quaternionf();
+		double[] ka = new double[4];
+		int i, turn = -1;
+		ka[X] = k.x(); 
+		ka[Y] = k.y(); 
+		ka[Z] = k.z();
+
+		if (ka[X]==ka[Y]) {
+			if (ka[X]==ka[Z])
+				turn = W;
+			else turn = Z;
+		} else {
+			if (ka[X]==ka[Z])
+				turn = Y;
+			else if (ka[Y]==ka[Z])
+				turn = X;
+		}
+		if (turn>=0) {
+			Quaternionf qtoz, qp;
+			int  win;
+			double[] mag = new double[3]; 
+			double t;
+			switch (turn) {
+			case X: 
+				qtoz = new Quaternionf(0f,(float)SQRTHALF,0f,(float)SQRTHALF);
+				q.multiply(qtoz); 
+				swap(ka,X,Z);
+				break;
+			case Y: 
+				qtoz = new Quaternionf((float)SQRTHALF,0f, 0f,(float)SQRTHALF);
+				q.multiply(qtoz); 
+				swap(ka,Y,Z); 
+				break;
+			case Z: 
+				qtoz = new Quaternionf(); 
+				break;
+			default: return q.conjugateMake();
+			}
+
+
+			q.conjugate();
+			mag[0] = (double)q.z()*q.z()+(double)q.w()*q.w()-0.5;
+			mag[1] = (double)q.x()*q.z()-(double)q.y()*q.w();
+			mag[2] = (double)q.y()*q.z()+(double)q.x()*q.w();
+
+			boolean[] neg = new boolean[3];
+			for (i=0; i<3; i++)
+			{
+				neg[i] = (mag[i]<0.0);
+				if (neg[i]) mag[i] = -mag[i];
+			}
+
+			if (mag[0]>mag[1]) {
+				if (mag[0]>mag[2])
+					win = 0;
+				else win = 2;
+			}
+			else {
+				if (mag[1]>mag[2]) win = 1;
+				else win = 2;
+			}
+
+			switch (win) {
+			case 0: 
+				if (neg[0]) 
+					p = new Quaternionf(1.0f, 0.0f, 0.0f, 0.0f); 
+				else 
+					p = new Quaternionf(); 
+				break;
+			case 1: 
+				if (neg[1]) 
+					p = new Quaternionf(0.5f, 0.5f, -0.5f, -0.5f); 
+				else 
+					p = new Quaternionf( 0.5f, 0.5f, 0.5f, 0.5f); 
+				cycle(ka,false); 
+				break;
+			case 2: 
+				if (neg[2]) 
+					p = new Quaternionf(-0.5f, 0.5f,-0.5f,-0.5f); 
+				else 
+					p = new Quaternionf( 0.5f, 0.5f, 0.5f,-0.5f); 
+				cycle(ka,true); 
+				break;
+			}
+
+			qp = q.multiplyMake(p);
+			t = Math.sqrt(mag[win]+0.5);
+			p.multiply(new Quaternionf(0f,0f,(float)(-qp.z()/t),(float)(qp.w()/t)));
+			p = qtoz.multiplyMake(p.conjugateMake());
+		}
+		else {
+			double[] qa = new double[4];
+			double[] pa = new double[4];
+			int lo, hi;
+			boolean par = false;
+			boolean[] neg = new boolean[4];
+			double all, big, two;
+			qa[0] = q.x(); qa[1] = q.y(); qa[2] = q.z(); qa[3] = q.w();
+			for (i=0; i<4; i++) {
+				pa[i] = 0.0;
+				neg[i] = (qa[i]<0.0);
+				if (neg[i]) 
+					qa[i] = -qa[i];
+				par ^= neg[i];
+			}
+
+			/* Find two largest components, indices in hi and lo */
+			if (qa[0]>qa[1]) 
+				lo = 0;
+			else 
+				lo = 1;
+
+			if (qa[2]>qa[3]) 
+				hi = 2;
+			else 
+				hi = 3;
+
+			if (qa[lo]>qa[hi]) {
+				if (qa[lo^1]>qa[hi]) {
+					hi = lo; lo ^= 1;
+				}
+				else {
+					hi ^= lo; lo ^= hi; hi ^= lo;
+				}
+			}
+			else {
+				if (qa[hi^1]>qa[lo]) 
+					lo = hi^1;
+			}
+
+			all = (qa[0]+qa[1]+qa[2]+qa[3])*0.5;
+			two = (qa[hi]+qa[lo])*SQRTHALF;
+			big = qa[hi];
+			if (all>two) {
+				if (all>big) {/*all*/
+					for (int j = 0; j<4; j++) 
+						pa[j] = sgn(neg[j], 0.5);
+					cycle(ka,par);
+				}
+				else {/*big*/ 
+					pa[hi] = sgn(neg[hi],1.0);
+				}
+			} else {
+				if (two>big) { /*two*/
+					pa[hi] = sgn(neg[hi],SQRTHALF);
+					pa[lo] = sgn(neg[lo], SQRTHALF);
+					if (lo>hi) {
+						hi ^= lo; lo ^= hi; hi ^= lo;
+					}
+					if (hi==W) {
+						int[] lo2hi = new int[]{1, 2, 0};
+						hi = lo2hi[lo];
+						//hi = "\001\002\000"[lo];
+						lo = 3-hi-lo;
+					}
+					swap(ka,hi,lo);
+				}
+				else {/*big*/
+					pa[hi] = sgn(neg[hi],1.0);
+				}
+			}
+			p.setX((float)-pa[0]); 
+			p.setY((float)-pa[1]); 
+			p.setZ((float)-pa[2]); 
+			p.setW((float)pa[3]); 
+		}
+		k.setX((float)ka[X]);
+		k.setY((float)ka[Y]);
+		k.setZ((float)ka[Z]);
+		return p;
+	}
+
+	private void cycle(double[] a,boolean p){
+		if (p) {
+			a[3]=a[0]; 
+			a[0]=a[1]; 
+			a[1]=a[2];
+			a[2]=a[3];
+		} else {
+			a[3]=a[2]; 
+			a[2]=a[1]; 
+			a[1]=a[0]; 
+			a[0]=a[3];
+		}
+	}
+
+	private double sgn(boolean n,double v) {
+		return ((n)?-(v):(v));
+	}
+
+	private void swap(double[] a,int i,int j) {
+		a[3]=a[i]; 
+		a[i]=a[j]; 
+		a[j]=a[3];
+	}
+
+	/******* Spectral Decomposition *******/
+	/* Compute the spectral decomposition of symmetric positive semi-definite S.
+	 * Returns rotation in U and scale factors in result, so that if K is a diagonal
+	 * matrix of the scale factors, then S = U K (U transpose). Uses Jacobi method.
+	 * See Gene H. Golub and Charles F. Van Loan. Matrix Computations. Hopkins 1983.
+	 */
+	Quaternionf spectDecomp(double[][] S, double[][] U)
+	{
+		double[] Diag = new double[3];
+		double[] OffD = new double[3]; /* OffD is off-diag (by omitted index) */
+		double g,h,fabsh,fabsOffDi,t,theta,c,s,tau,ta,OffDq,a,b;
+		char[] nxt = new char[]{Y,Z,X};
+		int sweep, i, j;
+		mat_copy(U,"=",mat_id(),4);
+		Diag[X] = S[X][X]; Diag[Y] = S[Y][Y]; Diag[Z] = S[Z][Z];
+		OffD[X] = S[Y][Z]; OffD[Y] = S[Z][X]; OffD[Z] = S[X][Y];
+		for (sweep=20; sweep>0; sweep--) {
+			double sm = Math.abs(OffD[X])+Math.abs(OffD[Y])+Math.abs(OffD[Z]);
+			if (sm==0.0) break;
+			for (i=Z; i>=X; i--) {
+				int p = nxt[i]; int q = nxt[p];
+				fabsOffDi = Math.abs(OffD[i]);
+				g = 100.0*fabsOffDi;
+				if (fabsOffDi>0.0) {
+					h = Diag[q] - Diag[p];
+					fabsh = Math.abs(h);
+					if (fabsh+g==fabsh) {
+						t = OffD[i]/h;
+					} else {
+						theta = 0.5*h/OffD[i];
+						t = 1.0/(Math.abs(theta)+Math.sqrt(theta*theta+1.0));
+						if (theta<0.0) t = -t;
+					}
+					c = 1.0/Math.sqrt(t*t+1.0); s = t*c;
+					tau = s/(c+1.0);
+					ta = t*OffD[i]; OffD[i] = 0.0;
+					Diag[p] -= ta; Diag[q] += ta;
+					OffDq = OffD[q];
+					OffD[q] -= s*(OffD[p] + tau*OffD[q]);
+					OffD[p] += s*(OffDq   - tau*OffD[p]);
+					for (j=Z; j>=X; j--) {
+						a = U[j][p]; b = U[j][q];
+						U[j][p] -= s*(b + tau*a);
+						U[j][q] += s*(a - tau*b);
+					}
+				}
+			}
+		}
+		return new Quaternionf((float)Diag[X], (float)Diag[Y], (float)Diag[Z], 1.0f);
+	}
+
+	/******* Polar Decomposition *******/
+	/* Polar Decomposition of 3x3 matrix in 4x4,
+	 * M = QS.  See Nicholas Higham and Robert S. Schreiber,
+	 * Fast Polar Decomposition of An Arbitrary Matrix,
+	 * Technical Report 88-942, October 1988,
+	 * Department of Computer Science, Cornell University.
+	 */
+	private double polarDecomp(double[][] M, double[][] Q, double[][] S)
+	{
+
+		double TOL = 1.0e-6;
+		double[][] Mk = new double[4][4];
+		double[][] MadjTk = new double[4][4]; 
+		double[][] Ek = new double[4][4];
+
+		double det, M_one, M_inf, MadjT_one, MadjT_inf, E_one, gamma, g1, g2;
+		int i, j;
+
+		mat_tpose(Mk,"=",M,3);
+		M_one = norm_one(Mk);  M_inf = norm_inf(Mk);
+
+		do
+		{
+			adjoint_transpose(Mk, MadjTk);
+			det = vdot(Mk[0], MadjTk[0]);
+			if (det==0.0)
+			{
+				do_rank2(Mk, MadjTk, Mk);
+				break;
+			}
+
+			MadjT_one = norm_one(MadjTk);
+			MadjT_inf = norm_inf(MadjTk);
+
+			gamma = Math.sqrt(Math.sqrt((MadjT_one*MadjT_inf)/(M_one*M_inf))/Math.abs(det));
+			g1 = gamma*0.5;
+			g2 = 0.5/(gamma*det);
+			mat_copy(Ek,"=",Mk,3); // there was a duplicate function in the original!!!?
+			matBinop(Mk,"=",mat_mult(Mk, g1),"+",mat_mult(MadjTk, g2),3);
+			mat_copy(Ek,"-=",Mk,3);
+			E_one = norm_one(Ek);
+			M_one = norm_one(Mk);
+			M_inf = norm_inf(Mk);
+
+		} while(E_one>(M_one*TOL));
+
+		mat_tpose(Q,"=",Mk,3); 
+		mat_pad(Q);
+		mat_mult(Mk, M, S);  
+		mat_pad(S);
+
+		for (i=0; i<3; i++)
+			for (j=i; j<3; j++)
+				S[i][j] = S[j][i] = 0.5*(S[i][j]+S[j][i]);
+		return (det);
+	}
+
+	/* Construct a unit quaternion from rotation matrix.  Assumes matrix is
+	 * used to multiply column vector on the left: vnew = mat vold.  Works
+	 * correctly for right-handed coordinate system and right-handed rotations.
+	 * Translation and perspective components ignored. */
+	private Quaternionf quatFromMatrix(double[][] mat)
+	{
+		/* This algorithm avoids near-zero divides by looking for a large component
+		 * - first w, then x, y, or z.  When the trace is greater than zero,
+		 * |w| is greater than 1/2, which is as small as a largest component can be.
+		 * Otherwise, the largest diagonal entry corresponds to the largest of |x|,
+		 * |y|, or |z|, one of which must be larger than |w|, and at least 1/2. */
+		Quaternionf qu = new Quaternionf();
+		double tr, s;
+
+		tr = mat[X][X] + mat[Y][Y]+ mat[Z][Z];
+		if (tr >= 0.0)
+		{
+			s = Math.sqrt(tr + mat[W][W]);
+			qu.setW((float)s*0.5f);
+			s = 0.5 / s;
+			qu.setX((float)((mat[Z][Y] - mat[Y][Z]) * s));
+			qu.setY((float)((mat[X][Z] - mat[Z][X]) * s));
+			qu.setZ((float)((mat[Y][X] - mat[X][Y]) * s));
+		}
+		else
+		{
+			int h = X;
+			if (mat[Y][Y] > mat[X][X]) h = Y;
+			if (mat[Z][Z] > mat[h][h]) h = Z;
+			switch (h) {
+			case X:
+				s = Math.sqrt( (mat[X][X] - (mat[Y][Y]+mat[Z][Z])) + mat[W][W] );
+				qu.setX((float)s*0.5f);
+				s = 0.5 / s;
+				qu.setY((float)((mat[X][Y] + mat[Y][X]) * s));
+				qu.setZ((float)((mat[Z][X] + mat[X][Z]) * s));
+				qu.setW((float)((mat[Z][Y] - mat[Y][Z]) * s));
+				break;
+			case Y:
+				s = Math.sqrt( (mat[Y][Y] - (mat[Z][Z]+mat[X][X])) + mat[W][W] );
+				qu.setY((float)s*0.5f);
+				s = 0.5 / s;
+				qu.setZ((float)((mat[Y][Z] + mat[Z][Y]) * s));
+				qu.setX((float)((mat[X][Y] + mat[Y][X]) * s));
+				qu.setW((float)((mat[X][Z] - mat[Z][X]) * s));
+				break;
+			case Z:
+				s = Math.sqrt( (mat[Z][Z] - (mat[X][X]+mat[Y][Y])) + mat[W][W] );
+				qu.setZ((float)s*0.5f);
+				s = 0.5 / s;
+				qu.setX((float)((mat[Z][X] + mat[X][Z]) * s));
+				qu.setY((float)((mat[Y][Z] + mat[Z][Y]) * s));
+				qu.setW((float)((mat[Y][X] - mat[X][Y]) * s));
+				break;
+			}
+		}
+		if (mat[W][W] != 1.0) 
+			qu.scale((float)(1/Math.sqrt(mat[W][W])));
+		return (qu);
+	}
+
+	/** Copy transpose of nxn matrix A to AT using "gets" for assignment
+	 * 
+	 * @param AT
+	 * @param gets ("=")
+	 * @param A
+	 * @param n
+	 */
+	private void mat_tpose(double[][] AT, String gets , double[][] A, int n) {
+		int i,j; 
+		for(i=0;i<n;i++){
+			for(j=0;j<n;j++){
+				if(gets.equals("="))
+					AT[i][j] = (A[j][i]);
+			}
+		}
+	}
+
+	/** Copy nxn matrix A to C using "gets" for assignment
+	 * 
+	 * @param C
+	 * @param gets ("=", "-=")
+	 * @param A
+	 * @param n
+	 */
+	private void mat_copy(double[][] C, String gets, double[][]A, int n) {
+		int i,j; 
+		for(i=0;i<n;i++){
+			for(j=0;j<n;j++){
+				if(gets.equals("="))
+					C[i][j] = (A[i][j]);
+				if(gets.equals("-="))
+					C[i][j] -= (A[i][j]);
+			}
+		}
+	}
+
+	/** Assign nxn matrix C the element-wise combination of A and B using "op"
+	 * 
+	 * @param C
+	 * @param gets ("=")
+	 * @param A
+	 * @param op ("*", "+")
+	 * @param B
+	 * @param n
+	 */
+	private void matBinop(double[][] C, String gets, double[][] A, String op, double[][] B, int n) {
+		int i,j; 
+		for(i=0;i<n;i++){
+			for(j=0;j<n;j++){
+				double operation = 0;
+				if(op.equals("*"))
+					operation = (A[i][j]) * (B[i][j]);
+				if(op.equals("+"))
+					operation = (A[i][j]) + (B[i][j]);
+				if(gets.equals("="))
+					C[i][j] = operation;
+			}
+		}
+	}
+
+	/**
+	 * Returns the scalar multiplication of the provided matrix
+	 * @param M
+	 * @param factor
+	 * @return
+	 */
+	private double[][] mat_mult(double[][] M, double factor){
+		double[][] ret = new double[M.length][M[0].length];
+		for(int i = 0; i < M.length; i++)
+			for(int j = 0; j < M[0].length; j++)
+				ret[i][j] = M[i][j] * factor;
+		return ret;
+	}
+
+	/** Multiply the upper left 3x3 parts of A and B to get AB
+	 * 
+	 * @param A
+	 * @param B
+	 * @param AB
+	 */
+	private void mat_mult(double[][] A, double[][] B, double[][] AB)
+	{
+		int i, j;
+		for (i=0; i<3; i++) 
+			for (j=0; j<3; j++)
+				AB[i][j] = A[i][0]*B[0][j] + A[i][1]*B[1][j] + A[i][2]*B[2][j];
+	}
+
+	private double mat_norm(double[][] M, boolean tpose)
+	{
+		int i;
+		double sum, max;
+		max = 0.0;
+		for (i=0; i<3; i++) {
+			if(tpose) 
+				sum = Math.abs(M[0][i])+Math.abs(M[1][i])+Math.abs(M[2][i]);
+			else       
+				sum = Math.abs(M[i][0])+Math.abs(M[i][1])+Math.abs(M[i][2]);
+			if(max<sum)
+				max = sum;
+		}
+		return max;
+	}
+
+	private double norm_inf(double[][] M) {
+		return mat_norm(M, false);
+	}
+
+	private double norm_one(double[][] M) {
+		return mat_norm(M, true);
+	}
+
+	/** Set MadjT to transpose of inverse of M times determinant of M **/
+	private void adjoint_transpose(double[][] M, double[][] MadjT)
+	{
+		vcross(M[1], M[2], MadjT[0]);
+		vcross(M[2], M[0], MadjT[1]);
+		vcross(M[0], M[1], MadjT[2]);
+	}
+
+	private void vcross(double[] va, double[] vb, double[] v)
+	{
+		v[0] = va[1]*vb[2] - va[2]*vb[1];
+		v[1] = va[2]*vb[0] - va[0]*vb[2];
+		v[2] = va[0]*vb[1] - va[1]*vb[0];
+	}
+
+	/** Return dot product of length 3 vectors va and vb **/
+	private double vdot(double[] va, double[] vb)
+	{
+		return (va[0]*vb[0] + va[1]*vb[1] + va[2]*vb[2]);
+	}
+
+	/** Setup u for Household reflection to zero all v components but first
+	 * 
+	 * @param v
+	 * @param u
+	 */
+	private void make_reflector(double[] v, double[] u)
+	{
+		double s = Math.sqrt(vdot(v, v));
+		u[0] = v[0]; 
+		u[1] = v[1];
+		u[2] = v[2] + ((v[2]<0.0) ? -s : s);
+		s = Math.sqrt(2.0/vdot(u, u));
+		u[0] = u[0]*s; 
+		u[1] = u[1]*s; 
+		u[2] = u[2]*s;
+	}
+
+	/** Apply Householder reflection represented by u to column vectors of M
+	 * 
+	 * @param M
+	 * @param u
+	 */
+	void reflect_cols(double[][] M, double[] u)
+	{
+		int i, j;
+		for (i=0; i<3; i++) {
+			double s = u[0]*M[0][i] + u[1]*M[1][i] + u[2]*M[2][i];
+			for (j=0; j<3; j++) 
+				M[j][i] -= u[j]*s;
+		}
+	}
+
+	/** Apply Householder reflection represented by u to row vectors of M
+	 * 
+	 * @param M
+	 * @param u
+	 */
+	void reflect_rows(double[][] M, double[] u)
+	{
+		int i, j;
+		for (i=0; i<3; i++) {
+			double s = vdot(u, M[i]);
+			for (j=0; j<3; j++) 
+				M[i][j] -= u[j]*s;
+		}
+	}
+
+	/** Find orthogonal factor Q of rank 2 (or less) M using adjoint transpose 
+	 * 
+	 * @param M
+	 * @param MadjT
+	 * @param Q
+	 */
+	void do_rank2(double[][] M, double[][] MadjT, double[][] Q)
+	{
+		double[] v1 = new double[3];
+		double[] v2 = new double[3];
+		double w, x, y, z, c, s, d;
+		int col;
+		/* If rank(M) is 2, we should find a non-zero column in MadjT */
+		col = find_max_col(MadjT);
+		if (col<0){
+			do_rank1(M, Q); 
+			return;
+		} /* Rank<2 */
+		v1[0] = MadjT[0][col]; 
+		v1[1] = MadjT[1][col]; 
+		v1[2] = MadjT[2][col];
+		make_reflector(v1, v1);
+		reflect_cols(M, v1);
+		vcross(M[0], M[1], v2);
+		make_reflector(v2, v2); 
+		reflect_rows(M, v2);
+		w = M[0][0]; x = M[0][1]; y = M[1][0]; z = M[1][1];
+		if (w*z>x*y) {
+			c = z+w; 
+			s = y-x; 
+			d = Math.sqrt(c*c+s*s); 
+			c = c/d; 
+			s = s/d;
+			Q[0][0] = Q[1][1] = c; 
+			Q[0][1] = -(Q[1][0] = s);
+		} else {
+			c = z-w; s = y+x; d = Math.sqrt(c*c+s*s); c = c/d; s = s/d;
+			Q[0][0] = -(Q[1][1] = c); Q[0][1] = Q[1][0] = s;
+		}
+		Q[0][2] = Q[2][0] = Q[1][2] = Q[2][1] = 0.0; Q[2][2] = 1.0;
+		reflect_cols(Q, v1); reflect_rows(Q, v2);
+	}
+
+	/** Find orthogonal factor Q of rank 1 (or less) M **/
+	private void do_rank1(double[][] M, double[][] Q)
+	{
+		double[] v1 = new double[3];
+		double[] v2 = new double[3];
+		double s;
+		int col;
+		mat_copy(Q,"=",mat_id(),4);
+		/* If rank(M) is 1, we should find a non-zero column in M */
+		col = find_max_col(M);
+		if (col<0) return; /* Rank is 0 */
+		v1[0] = M[0][col]; 
+		v1[1] = M[1][col]; 
+		v1[2] = M[2][col];
+		make_reflector(v1, v1); 
+		reflect_cols(M, v1);
+		v2[0] = M[2][0]; 
+		v2[1] = M[2][1]; 
+		v2[2] = M[2][2];
+		make_reflector(v2, v2); 
+		reflect_rows(M, v2);
+		s = M[2][2];
+		if (s<0.0) Q[2][2] = -1.0;
+		reflect_cols(Q, v1); 
+		reflect_rows(Q, v2);
+	}
+
+	/** Return index of column of M containing maximum abs entry, or -1 if M=0
+	 * 
+	 * @param M
+	 * @return
+	 */
+	private int find_max_col(double[][] M)
+	{
+		double abs, max;
+		int i, j, col;
+		max = 0.0; col = -1;
+		for (i=0; i<3; i++) for (j=0; j<3; j++) {
+			abs = M[i][j]; if (abs<0.0) abs = -abs;
+			if (abs>max) {max = abs; col = j;}
+		}
+		return col;
+	}
+
+	private static double[][] mat_id(){
+		return new double[][]{{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
+	}
+
+	/** Fill out 3x3 matrix to 4x4 **/
+	private void mat_pad(double[][] A){
+		A[W][X]=A[X][W]=A[W][Y]=A[Y][W]=A[W][Z]=A[Z][W]=0;
+		A[W][W]=1;
+	}
 
 	public Matrix4x4f clone(){
 		return new Matrix4x4f(this);
@@ -1352,5 +2102,32 @@ public class Matrix4x4f
 
 		return string;
 	}
-}
 
+	public static void main(String[] args) {
+		Quaternionf rot = new Quaternionf(20f, 30f, 40f);
+		Vector3f trans = new Vector3f(10f, 20f, 30f);
+		Vector3f scale = new Vector3f(1f, 2f, 3f);
+		
+		Matrix4x4f mat = new Matrix4x4f();
+		mat.scale(scale);
+		mat.rotate(rot);
+		mat.translate(trans);
+		
+		Quaternionf de_rot = new Quaternionf();
+		Vector3f de_trans = new Vector3f();
+		Vector3f de_scale = new Vector3f();
+		Quaternionf de_so = new Quaternionf();
+		
+		mat.decompose(de_trans, de_rot, de_scale, de_so);
+		
+		System.out.println(rot.toString());
+		System.out.println(de_rot.toString());
+		System.out.println(de_trans.toString());
+		System.out.println(de_scale.toString());
+		System.out.println(de_so.toString());
+		
+		/* multiplying matrices */
+
+	}
+
+}

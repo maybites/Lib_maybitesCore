@@ -25,7 +25,10 @@ public class Vector4d
 {
 	private double[] v_;
 
-
+	public static int X = 0;
+	public static int Y = 1;
+	public static int Z = 2;
+	public static int W = 3;
 
 	private void initialize()
 	{
