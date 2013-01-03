@@ -1,6 +1,3 @@
-package ch.maybites.tools.math.la;
-
-
 /*
  * (C) 2004 - Geotechnical Software Services
  * 
@@ -19,6 +16,8 @@ package ch.maybites.tools.math.la;
  * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
  * MA  02111-1307, USA.
  */
+
+package ch.maybites.tools.math.la;
 
 /**
  * Implementation of a 4x4 matrix suited for use in a 2D and 3D

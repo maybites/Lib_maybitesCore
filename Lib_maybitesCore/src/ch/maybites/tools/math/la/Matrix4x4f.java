@@ -1,26 +1,27 @@
+/*
+ * Copyright (c) 2013 maybites.ch / openframeworks.org
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ *  of this software and associated documentation files (the "Software"), to deal 
+ *  in the Software without restriction, including without limitation the rights 
+ *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell 
+ *  copies of the Software, and to permit persons to whom the Software is furnished
+ *  to do so, subject to the following conditions:
+ *  
+ *  The above copyright notice and this permission notice shall be included in all
+ *  copies or substantial portions of the Software.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
+ *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+ *  WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN 
+ *  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
 package ch.maybites.tools.math.la;
 
 import ch.maybites.tools.threedee.Frustum;
-
-
-/*
- * (C) 2012 - Maybites
- * 
- * This code is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public 
- * License as published by the Free Software Foundation; either 
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This code is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public 
- * License along with this program; if not, write to the Free 
- * Software Foundation, Inc., 59 Temple Place - Suite 330, Boston, 
- * MA  02111-1307, USA.
- */
 
 /**
  * Implementation of a 4x4 matrix 
@@ -29,6 +30,7 @@ import ch.maybites.tools.threedee.Frustum;
  * All transformations on this matrix, if not specified, are by definition
  * postMultiplication
  * 
+ * Part of this code is from openFrameworks.org
  */   
 public class Matrix4x4f 
 {
@@ -435,7 +437,9 @@ public class Matrix4x4f
 	 * Returns this 4x4 matrix in as a quaternion.<br>
 	 * 
 	 * This function will only result in a correct normalized Quaternion if
-	 * the matrix is a pure rotation matrix
+	 * the matrix is a pure rotation matrix.
+	 * 
+	 * Otherwise use please decompose()
 	 * 
 	 * see discussion: http://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
 	 *
@@ -494,10 +498,12 @@ public class Matrix4x4f
 
 	/**
 	 * Transposes this matrix
+	 * @return this instance
 	 */
-	public void transpose(){
+	public Matrix4x4f transpose(){
 		Matrix4x4f trans = new Matrix4x4f(getCol());
 		set(trans);
+		return this;
 	}
 
 
@@ -543,25 +549,16 @@ public class Matrix4x4f
 	 * Add the specified 4x4 matrix to this matrix.
 	 * 
 	 * @param matrix  Matrix to add.
+	 * @return this instance
 	 */
-	public void add(Matrix4x4f matrix)
+	public Matrix4x4f add(Matrix4x4f matrix)
 	{
 		for (int i=0; i<4; i++)
 			for (int j=0; j<4; j++)
 				m_[i*4 + j] += matrix.m_[i*4 + j];
-	}
-
-	/**
-	 * Add the specified 4x4 matrix to this matrix and return this instance
-	 * 
-	 * @param matrix  Matrix to add.
-	 * @return this instance
-	 */
-	public Matrix4x4f getAdd(Matrix4x4f matrix)
-	{
-		add(matrix);
 		return this;
 	}
+
 
 	/**
 	 * Add the specified 4x4 matrix to this matrix and return a new instance.
@@ -571,7 +568,7 @@ public class Matrix4x4f
 	 * @return this instance
 	 */
 	public Matrix4x4f makeAdd(Matrix4x4f matrix){
-		return clone().getAdd(matrix);
+		return clone().add(matrix);
 	}
 
 	/**
@@ -581,7 +578,7 @@ public class Matrix4x4f
 	 * @param m2  Second matrix to add.
 	 * @return    Sum m1 + m2.
 	 */
-	public Matrix4x4f makeAdd(Matrix4x4f m1, Matrix4x4f m2)
+	public static Matrix4x4f makeAdd(Matrix4x4f m1, Matrix4x4f m2)
 	{
 		Matrix4x4f m = new Matrix4x4f (m1);
 		m.add (m2);
@@ -602,8 +599,9 @@ public class Matrix4x4f
 	 * C = this instance
 	 * 
 	 * @param matrix  Matrix to multiply with.
+	 * @return this instance
 	 */
-	public void multiply(Matrix4x4f matrix){
+	public Matrix4x4f multiply(Matrix4x4f matrix){
 		Matrix4x4f product = new Matrix4x4f();
 
 		for (int i = 0; i < 16; i += 4) { //step through rows
@@ -615,27 +613,8 @@ public class Matrix4x4f
 		}
 
 		set(product);
-	}
-
-	/**
-	 * Multiply this 4x4 matrix with the specified matrix and
-	 * store the result in this 4x4 matrix.
-	 * 	 
-	 * Since this Matrix is Row-Major - it is a postMultiplication
-	 * C = A x B where
-	 *
-	 * A = this instance
-	 * B = matrix
-	 * C = this instance
-	 *
-	 * @param matrix  Matrix to multiply with.
-	 * @return this instance
-	 */
-	public Matrix4x4f getMultiplied(Matrix4x4f matrix){
-		multiply(matrix);
 		return this;
 	}
-
 
 	/**
 	 * Multiply two matrices and return the result matrix. This instance will
@@ -645,7 +624,7 @@ public class Matrix4x4f
 	 * @return Product m1 * m2.
 	 */
 	public Matrix4x4f makeMultiply (Matrix4x4f matrix){
-		return clone().getMultiplied(matrix);
+		return clone().multiply(matrix);
 	}
 
 
@@ -679,7 +658,7 @@ public class Matrix4x4f
 	 * @param point  
 	 * @return vector
 	 */
-	public Vector3f makeTransformPoint(Vector3f point)
+	public Vector3f transformPointMake(Vector3f point)
 	{
 		return transformPoint(point.clone());
 	}
@@ -850,21 +829,25 @@ public class Matrix4x4f
 	 * @param dx  x translation of translation matrix.
 	 * @param dy  y translation of translation matrix.
 	 * @param dz  z translation of translation matrix.
+	 * @return this instance
 	 */
-	public void translate(float dx, float dy, float dz)
+	public Matrix4x4f translate(float dx, float dy, float dz)
 	{
 		translate(new Vector3f(dx, dy, dz));
+		return this;
 	}
 
 	/**
 	 * multiply the specified translation matrix to this matrix.
 	 * 
 	 * @param vec  Vector3f  of translation matrix
+	 * @return this instance
 	 */
-	public void translate(Vector3f vec)
+	public Matrix4x4f translate(Vector3f vec)
 	{
 		Matrix4x4f  translationMatrix = new Matrix4x4f(vec);
 		multiply (translationMatrix);
+		return this;
 	}
 
 
@@ -873,8 +856,9 @@ public class Matrix4x4f
 	 * Apply rotation around X axis to this matrix.
 	 * 
 	 * @param angle  Angle to rotate [radians].
+	 * @return this instance
 	 */
-	public void rotateX (float angle)
+	public Matrix4x4f rotateX (float angle)
 	{
 		Matrix4x4f rotationMatrix = new Matrix4x4f();
 
@@ -887,6 +871,7 @@ public class Matrix4x4f
 		rotationMatrix.setElement (2, 2,  cosAngle);
 
 		multiply (rotationMatrix);
+		return this;
 	}
 
 
@@ -895,8 +880,9 @@ public class Matrix4x4f
 	 * Apply rotation around Y axis to this matrix.
 	 * 
 	 * @param angle  Angle to rotate [radians].
+	 * @return this instance
 	 */
-	public void rotateY (float angle)
+	public Matrix4x4f rotateY (float angle)
 	{
 		Matrix4x4f rotationMatrix = new Matrix4x4f();
 
@@ -909,6 +895,7 @@ public class Matrix4x4f
 		rotationMatrix.setElement (2, 2,  cosAngle);
 
 		multiply (rotationMatrix);
+		return this;
 	}
 
 
@@ -917,8 +904,9 @@ public class Matrix4x4f
 	 * Apply rotation around z axis to this matrix.
 	 * 
 	 * @param angle  Angle to rotate [radians].
+	 * @return this instance
 	 */
-	public void rotateZ (float angle)
+	public Matrix4x4f rotateZ (float angle)
 	{
 		Matrix4x4f rotationMatrix = new Matrix4x4f();
 
@@ -931,8 +919,8 @@ public class Matrix4x4f
 		rotationMatrix.setElement (1, 1,  cosAngle);
 
 		multiply (rotationMatrix);
+		return this;
 	}
-
 
 
 	/**
@@ -944,8 +932,9 @@ public class Matrix4x4f
 	 * @param angle  Angle to rotate [radians]
 	 * @param p0     First point defining the axis (x,y,z)
 	 * @param p1     Second point defining the axis (x,y,z)
+	 * @return this instance
 	 */
-	public void rotate (float angle, float[] p0, float[] p1)
+	public Matrix4x4f rotate (float angle, float[] p0, float[] p1)
 	{
 		// Represent axis of rotation by a unit vector [a,b,c]
 		float a = p1[0] - p0[0];
@@ -1044,15 +1033,19 @@ public class Matrix4x4f
 		multiply (step5);
 		multiply (step6);
 		multiply (step7);
+		
+		return this;
 	}
 
 	/**
 	 * Apply rotation with a quaternion.
 	 *
 	 * @param quat   normalized Quaternion
+	 * @return this instance
 	 */
-	public void rotate (Quaternionf quat){
+	public Matrix4x4f rotate (Quaternionf quat){
 		multiply(new Matrix4x4f(quat));
+		return this;
 	}
 
 	/**
@@ -1061,21 +1054,25 @@ public class Matrix4x4f
 	 * @param xScale  Scaling in x direction.
 	 * @param yScale  Scaling in y direction.
 	 * @param zScale  Scaling in z direction.
+	 * @return this instance
 	 */
-	public void scale (float xScale, float yScale, float zScale)
+	public Matrix4x4f scale (float xScale, float yScale, float zScale)
 	{
 		Matrix4x4f  scalingMatrix = new Matrix4x4f(xScale, yScale, zScale);
 		multiply (scalingMatrix);
+		return this;
 	}
 
 	/**
 	 * Apply scaling-vector (relative to origo) to this 4x4 matrix.
 	 * 
 	 * @param scale  Scaling Vector3f.
+	 * @return this instance
 	 */
-	public void scale (Vector3f scale)
+	public Matrix4x4f scale (Vector3f scale)
 	{
 		scale(scale.x(), scale.y(), scale.z());
+		return this;
 	}
 
 	/**
@@ -1098,8 +1095,9 @@ public class Matrix4x4f
 
 	/**
 	 * Invert this 4x4 matrix.
+	 * @return this instance
 	 */
-	public void invert()
+	public Matrix4x4f invert()
 	{
 		float[] tmp = new float[12];
 		float[] src = new float[16];
@@ -1184,24 +1182,18 @@ public class Matrix4x4f
 		det = 1.0f / det;
 		for (int i = 0; i < 16; i++)
 			m_[i] = dst[i] * det;
-	}
-
-	/**
-	 * Invert this 4x4 matrix and return this instance.
-	 * @return this instance
-	 */
-	public Matrix4x4f getInvert(){
-		invert();
+		
 		return this;
 	}
 
+
 	/**
-	 * Return the inverse of the specified matrix.
+	 * Return the inverse of the specified matrix without modifying this instance
 	 * 
-	 * @return        new Instance of the inverse of this matrix.
+	 * @return new Instance of the inverse of this matrix.
 	 */
-	public Matrix4x4f makeInverse(){
-		return clone().getInvert();
+	public Matrix4x4f invertMake(){
+		return clone().invert();
 	}
 
 
@@ -1338,6 +1330,8 @@ public class Matrix4x4f
 	/**
 	 * Decompose this Matrix into a translsation vector, a scale vector and a
 	 * quaternion rotation
+	 * 
+	 * The code used for this task was taken from openFrameworks.org math class ofMatrix4x4
 	 * 
 	 * @param translation
 	 * @param rotation
@@ -2092,13 +2086,14 @@ public class Matrix4x4f
 	 */
 	public String toString()
 	{
-		String string = new String();
-
+		String string = "Matrix4x4: [";
 		for (int i=0; i<4; i++) {
+			string += "[";
 			for (int j=0; j<4; j++)
 				string += getElement(i,j) + " ";
-			string += '\n';
+			string += "] \n";
 		}
+		string += "]";
 
 		return string;
 	}
