@@ -87,6 +87,25 @@ public class Linef{
 	}
 	
 	/**
+	 * Gets the line in a float array: The first three
+	 * values define x1,y1,z1 of the first point, the second three values define
+	 * x2,y2,z2 of the second point.
+	 * 
+	 * @return twoPoints - 6 indices float array
+	 */
+	public float[] getTwoPoints(){
+		float[] ret = new float[6];
+		Vector3f theOther = theOtherPoint();
+		ret[0] = theOrigin.x();
+		ret[1] = theOrigin.y();
+		ret[2] = theOrigin.z();
+		ret[3] = theOther.x();
+		ret[4] = theOther.y();
+		ret[5] = theOther.z();
+		return ret;
+	}
+
+	/**
 	 * returns another point on this line
 	 * it is the result of a vector addition of theOrigin and the direction
 	 * 

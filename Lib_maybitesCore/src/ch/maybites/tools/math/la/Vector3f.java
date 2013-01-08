@@ -93,6 +93,19 @@ public class Vector3f
 	    initialize();
 		set(vector);
 	}
+	
+	/**
+	 * Construct a 3-element vector from the specified 4-element Vector. It disregards
+	 * the w-value
+	 * 
+	 * @param vector
+	 */
+	public Vector3f (Vector4d vector)
+	{
+	    initialize();
+		set((float)vector.x(), (float)vector.y(),(float) vector.z());
+	}
+	
 
 	 /**
 	   * Set the elements of this vector.
@@ -327,7 +340,7 @@ public class Vector3f
 	 * @return this instance
 	 */
 	public final Vector3f scale(float scalar) {
-		scale(scalar);
+		scale(scalar, scalar, scalar);
 		return this;
 	}
 

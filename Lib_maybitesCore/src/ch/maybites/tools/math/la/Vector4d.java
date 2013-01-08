@@ -80,6 +80,14 @@ public class Vector4d
 		set (Vector4d);
 	}
 
+	/**
+	 * Construct a  4-element vector from a 3-element vector with 
+	 * @param vector3
+	 */
+	public Vector4d(Vector3f vector3){
+		initialize();
+		set(vector3.x(), vector3.y(), vector3.z(), 1);
+	}
 
 
 	/**
@@ -133,11 +141,25 @@ public class Vector4d
 	 * @param i  Index of element to get (first is 0).
 	 * @return   i'th element of this vector.
 	 */
-	public double getElement (int i)
-	{
+	public double getElement (int i){
 		return v_[i];
 	}
 
+	public double x(){
+		return v_[0];
+	}
+
+	public double y(){
+		return v_[1];
+	}
+	
+	public double z(){
+		return v_[2];
+	}
+	
+	public double w(){
+		return v_[3];
+	}
 
 
 	/**
@@ -152,6 +174,17 @@ public class Vector4d
 	}
 
 
+	/**
+	 * Normalizes this Vector: Divides the w-value through x, y, and z
+	 * @return this instance
+	 */
+	public Vector4d normalize(){
+		v_[0] /= v_[3];
+		v_[1] /= v_[3];
+		v_[2] /= v_[3];
+		v_[3] = 1;
+		return this;
+	}
 
 	/**
 	 * Create a string representation of this vector.

@@ -28,7 +28,14 @@ package ch.maybites.tools.math.la;
 
 import ch.maybites.tools.Const;
 
-
+/**
+ * 
+ * @author Martin Fršhlich
+ *
+ * This class is heavily indebted by the openframeworks Quaternion class and code from
+ * Patrick Kochlik + Dennis Paul. And others...
+ * 
+ */
 public class Quaternionf {
 
 	private float[] v_;
@@ -60,6 +67,16 @@ public class Quaternionf {
 	public Quaternionf(float bank, float heading, float attitude) {
 		reset();
 		setEuler(bank, heading, attitude);
+	}
+
+	/**
+	 * Construct a Quaternion from a rotation around a vector
+	 * @param angle
+	 * @param vector
+	 */
+	public Quaternionf(float angle, Vector3f vector) {
+		reset();
+		setRotate(angle, vector);
 	}
 
 	/**

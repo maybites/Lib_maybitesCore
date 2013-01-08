@@ -27,8 +27,26 @@ import ch.maybites.tools.threedee.Frustum;
  * Implementation of a 4x4 matrix 
  * it is suited for use in a 2D and 3D graphics rendering engine.
  * 
- * All transformations on this matrix, if not specified, are by definition
- * postMultiplication
+ * The Matrix is structured the followin way:
+ * 
+ *  m00,  m01,  m02,  m03
+ *  m10,  m11,  m12,  m13
+ *  m20,  m21,  m22,  m23
+ *  m30,  m31,  m32,  m33
+ *  
+ *  where a translation matrix looks like:
+ *  
+ *  1  ,  0  ,  0  ,  0
+ *  0  ,  1  ,  0  ,  0
+ *  0  ,  0  ,  1  ,  0
+ *  tx ,  ty ,  tz ,  1 
+ * 
+ *  and a scale matrix looks like:
+ *  
+ *  sx ,  0  ,  0  ,  0
+ *  0  ,  sy ,  0  ,  0
+ *  0  ,  0  ,  sz ,  0
+ *  0  ,  0  ,  0  ,  1 
  * 
  * Part of this code is from openFrameworks.org
  */   
@@ -122,19 +140,19 @@ public class Matrix4x4f
 	{
 		initialize();
 		if(frust.isOrtho())
-			setOrthograficMatrix(frust.getLeft(),
-					frust.getRight(), 
-					frust.getBottom(), 
-					frust.getTop(), 
-					frust.getNear(), 
-					frust.getFar());
+			setOrthograficMatrix(frust.left,
+					frust.right, 
+					frust.bottom, 
+					frust.top, 
+					frust.zNear, 
+					frust.zFar);
 		else
-			setPerspectiveMatrix(frust.getLeft(),
-					frust.getRight(), 
-					frust.getBottom(), 
-					frust.getTop(), 
-					frust.getNear(), 
-					frust.getFar());
+			setPerspectiveMatrix(frust.left,
+					frust.right, 
+					frust.bottom, 
+					frust.top, 
+					frust.zNear, 
+					frust.zFar);
 
 	}
 
@@ -308,7 +326,7 @@ public class Matrix4x4f
 		setElement(2, 2, C);
 		setElement(2, 3, -1.0f);
 		setElement(3, 2, D);
-	}
+}
 
 	/**
 	 * Sets this matrix as a orthografic projection matrix
@@ -481,6 +499,14 @@ public class Matrix4x4f
 	}
 
 	/**
+	 * Gets the Translation part of this Matrix
+	 * @return
+	 */
+	public Vector3f getTranslation(){
+		return new Vector3f(getElement (3, 0),getElement (3, 1),getElement (3, 2));  
+	}
+
+	/**
 	 * Check if this 4x4 matrix equals the specified object.
 	 * 
 	 * @param object  Object to check.
@@ -567,7 +593,7 @@ public class Matrix4x4f
 	 * @param matrix  Matrix to add.
 	 * @return this instance
 	 */
-	public Matrix4x4f makeAdd(Matrix4x4f matrix){
+	public Matrix4x4f addMake(Matrix4x4f matrix){
 		return clone().add(matrix);
 	}
 
@@ -578,7 +604,7 @@ public class Matrix4x4f
 	 * @param m2  Second matrix to add.
 	 * @return    Sum m1 + m2.
 	 */
-	public static Matrix4x4f makeAdd(Matrix4x4f m1, Matrix4x4f m2)
+	public static Matrix4x4f addMake(Matrix4x4f m1, Matrix4x4f m2)
 	{
 		Matrix4x4f m = new Matrix4x4f (m1);
 		m.add (m2);
@@ -591,15 +617,8 @@ public class Matrix4x4f
 	 * Multiply this 4x4 matrix with the specified matrix and
 	 * store the result in this 4x4 matrix.
 	 * 
-	 * Since this Matrix is Row-Major - it is a postMultiplication
-	 * C = A x B where
-	 *
-	 * A = this instance
-	 * B = matrix
-	 * C = this instance
-	 * 
-	 * @param matrix  Matrix to multiply with.
-	 * @return this instance
+	 * @param matrix Matrix to multiply with.
+	 * @return Product of this instance * matrix.
 	 */
 	public Matrix4x4f multiply(Matrix4x4f matrix){
 		Matrix4x4f product = new Matrix4x4f();
@@ -620,21 +639,45 @@ public class Matrix4x4f
 	 * Multiply two matrices and return the result matrix. This instance will
 	 * NOT be modified
 	 * 
-	 * @param matrix  First matrix to multiply.
-	 * @return Product m1 * m2.
+	 * @param matrix Matrix to multiply with.
+	 * @return Product of this instance * matrix.
 	 */
-	public Matrix4x4f makeMultiply (Matrix4x4f matrix){
+	public Matrix4x4f multiplyMake (Matrix4x4f matrix){
 		return clone().multiply(matrix);
 	}
 
 
 	/**
-	 * Multiply this 4x4 matrix with the specified vector.
+	 * Multiply this 4x4 matrix with the specified row vector.
+	 * This is the preferred multiplication, since this matrix
+	 * is row oriented as well.
 	 * 
-	 * @param vector4  Vector to multiply with.
+	 * @param vector4  row Vector to multiply with.
 	 * @return         Result of operation.
 	 */
-	public Vector4d multiply (Vector4d vector4)
+	public Vector4d multiplyRow(Vector4d vector4)
+	{
+		Vector4d  product = new Vector4d();
+
+		for (int i = 0; i < 4; i++) {
+			float value = 0.0f;
+			for (int j = 0; j < 4; j++)
+				value += getElement(j, i) * vector4.getElement (j);
+			product.setElement (i, value);
+		}
+
+		return product;
+	}
+	
+	/**
+	 * Multiply this 4x4 matrix with the specified column vector.
+	 * This is equal to a row multiplication with the transposed
+	 * matrix
+	 * 
+	 * @param vector4  columns Vector to multiply with.
+	 * @return         Result of operation.
+	 */
+	public Vector4d multiplyColumn(Vector4d vector4)
 	{
 		Vector4d  product = new Vector4d();
 
@@ -652,9 +695,6 @@ public class Matrix4x4f
 	 * Transform (PreMultiply) a Point using this 4x4 matrix and return a new instance
 	 * without modifying the provided instance
 	 * 
-	 * This Method is not a mathematically correct matrix4x4 * vector3 multiplication
-	 * since it ignores the (usually unused i.e. 0) elements m03, m13 and m23
-	 * 
 	 * @param point  
 	 * @return vector
 	 */
@@ -664,28 +704,29 @@ public class Matrix4x4f
 	}
 
 	/**
-	 * Transform (PreMultiply) a Point using this 4x4 matrix. It applies the result
+	 * Transform a Point using this 4x4 matrix. It applies the result
 	 * to the provided instance and also returns it.
-	 * 
-	 * This Method is not a mathematically correct matrix4x4 * vector3 multiplication
-	 * since it ignores the (usually unused i.e. 0) elements m03, m13 and m23
-	 * 
+	 * 	 * 
 	 * @param point  
 	 * @return point
 	 */
 	public Vector3f transformPoint(Vector3f point)
 	{
+		float d = 1.0f / (point.x() * m_[3] + point.y() * m_[7] + point.z() * m_[11] + m_[15]);
 		float x = point.x() * m_[0]  +
 				point.y() * m_[4]  +
-				point.z() * m_[8]  + m_[12];
+				point.z() * m_[8]  + 
+				d * m_[12];
 
 		float y = point.x() * m_[1]  +
 				point.y() * m_[5]  +
-				point.z() * m_[9]  + m_[13];
+				point.z() * m_[9]  + 
+				d * m_[13];
 
 		float z = point.x() * m_[2]   +
 				point.y() * m_[6]   +
-				point.z() * m_[10]  + m_[14];
+				point.z() * m_[10]  + 
+				d * m_[14];
 
 		point.set(x, y, z);
 		return point;
@@ -1209,7 +1250,7 @@ public class Matrix4x4f
 	{
 		Matrix4x4f inverse = new Matrix4x4f (this);
 		inverse.invert();
-		Vector4d result = inverse.multiply (vector);
+		Vector4d result = inverse.multiplyRow (vector);
 		return result;
 	}
 
@@ -1327,6 +1368,19 @@ public class Matrix4x4f
 		multiply (matrix);
 	}
 
+
+	/**
+	 * Get the rotation of this Matrix. It uses internally the decompose method - 
+	 * it is therefore not very fast..
+	 * 
+	 * @return rotation quaternion
+	 */
+	public Quaternionf getRotation(){
+		Quaternionf ret = new Quaternionf();
+		decompose(new Vector3f(), ret, new Vector3f(), new Quaternionf());
+		return ret;
+	}
+	
 	/**
 	 * Decompose this Matrix into a translsation vector, a scale vector and a
 	 * quaternion rotation
@@ -1408,6 +1462,7 @@ public class Matrix4x4f
 		p = snuggle(parts.stretch, parts.k);
 		parts.stretch.multiply(p);
 	}
+	
 
 	private class AffineParts{
 
@@ -1421,7 +1476,6 @@ public class Matrix4x4f
 			;
 		}
 	}
-
 
 	/* Given a unit quaternion, q, and a scale vector, k, find a unit quaternion, p,
 	 * which permutes the axes and turns freely in the plane of duplicate scale
@@ -1605,6 +1659,7 @@ public class Matrix4x4f
 		return p;
 	}
 
+
 	private void cycle(double[] a,boolean p){
 		if (p) {
 			a[3]=a[0]; 
@@ -1619,15 +1674,18 @@ public class Matrix4x4f
 		}
 	}
 
+	
 	private double sgn(boolean n,double v) {
 		return ((n)?-(v):(v));
 	}
 
+	
 	private void swap(double[] a,int i,int j) {
 		a[3]=a[i]; 
 		a[i]=a[j]; 
 		a[j]=a[3];
 	}
+
 
 	/******* Spectral Decomposition *******/
 	/* Compute the spectral decomposition of symmetric positive semi-definite S.
@@ -1679,6 +1737,7 @@ public class Matrix4x4f
 		}
 		return new Quaternionf((float)Diag[X], (float)Diag[Y], (float)Diag[Z], 1.0f);
 	}
+	
 
 	/******* Polar Decomposition *******/
 	/* Polar Decomposition of 3x3 matrix in 4x4,
@@ -1736,6 +1795,7 @@ public class Matrix4x4f
 				S[i][j] = S[j][i] = 0.5*(S[i][j]+S[j][i]);
 		return (det);
 	}
+	
 
 	/* Construct a unit quaternion from rotation matrix.  Assumes matrix is
 	 * used to multiply column vector on the left: vnew = mat vold.  Works
@@ -2086,12 +2146,12 @@ public class Matrix4x4f
 	 */
 	public String toString()
 	{
-		String string = "Matrix4x4: [";
+		String string = "Matrix4x4:";
 		for (int i=0; i<4; i++) {
-			string += "[";
+			string += (i == 0)?"[[":"\n[";
 			for (int j=0; j<4; j++)
-				string += getElement(i,j) + " ";
-			string += "] \n";
+				string += getElement(i,j) + "\t";
+			string += "]";
 		}
 		string += "]";
 

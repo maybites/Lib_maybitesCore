@@ -27,7 +27,7 @@ import ch.maybites.tools.Const;
 
 public class Frustum {
 	
-	private float left, right, bottom, top, zNear, zFar;
+	public float left, right, bottom, top, zNear, zFar;
 	
 	private float fovy, aspectRatio;
 	
@@ -155,35 +155,14 @@ public class Frustum {
 
 	}
 	
-	public float getLeft(){
-		return left;
-	}
-	
-	public float getRight(){
-		return right;
-	}
-
-	public float getBottom(){
-		return bottom;
-	}
-
-	public float getTop(){
-		return top;
-	}
-
-	public float getNear(){
-		return zNear;
-	}
-
-	public float getFar(){
-		return zFar;
-	}
 
 	public float getFOV(){
+		updateFovy();
 		return fovy;
 	}
 	
 	public float getAspectRatio(){
+		updateFovy();
 		return aspectRatio;
 	}
 	

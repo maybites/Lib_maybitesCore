@@ -38,6 +38,8 @@
  		 		<property file="${project.resources.dir}/building.properties"/>
  		     	
  				<target name ="default" description="check conditions">
+			 		<delete dir="${export.dir}"/>
+ 					<mkdir dir="${export.dir}"/>
  			 			
  					<mkdir dir="${project.build.dir}"/>
  					<mkdir dir="${project.library.dir}"/>
@@ -46,9 +48,7 @@
  			 		    <fileset dir="${project.src.dir}"/>
  			 		</copy>
 
- 			 		<copy file="COPYING"
- 			 		    todir="${project.build.dir}"/>
- 			 		<copy file="COPYING.LESSER"
+ 			 		<copy file="MIT.LICENSE"
  			 		    todir="${project.build.dir}"/>
  				
  					<condition property="makeDoc">
@@ -58,8 +58,6 @@
  					<antcall target="doc.build"/>
  					<antcall target="jar.build"/>
  					
-			 		<delete dir="${export.dir}"/>
- 					<mkdir dir="${export.dir}"/>
    					<copy todir="${export.dir}">
  						<fileset dir="${project.build.dir}"/>
  					</copy>
