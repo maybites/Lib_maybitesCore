@@ -213,7 +213,7 @@ public class Linef{
 		Vector3f scale = new Vector3f();
 		mat.decompose(translate, rotate, scale, new Quaternionf());
 		
-		mat.transformPoint(theOrigin);
+		mat.multiply(theOrigin);
 		direction.scale(scale).rotateBy(rotate);
 	}
 

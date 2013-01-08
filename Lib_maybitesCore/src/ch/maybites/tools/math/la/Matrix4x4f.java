@@ -655,7 +655,7 @@ public class Matrix4x4f
 	 * @param vector4  row Vector to multiply with.
 	 * @return         Result of operation.
 	 */
-	public Vector4d multiplyRow(Vector4d vector4)
+	public Vector4d multiply(Vector4d vector4)
 	{
 		Vector4d  product = new Vector4d();
 
@@ -692,41 +692,42 @@ public class Matrix4x4f
 	}
 
 	/**
-	 * Transform (PreMultiply) a Point using this 4x4 matrix and return a new instance
-	 * without modifying the provided instance
+	 * Transform a Vector using this 4x4 matrix. This is basically a 4 elements vector 
+	 * multiplication and subsequent normalization.
+	 * 
+	 * return a new instance without modifying the provided instance
 	 * 
 	 * @param point  
 	 * @return vector
 	 */
-	public Vector3f transformPointMake(Vector3f point)
+	public Vector3f multiplyMake(Vector3f point)
 	{
-		return transformPoint(point.clone());
+		return multiply(point.clone());
 	}
 
 	/**
-	 * Transform a Point using this 4x4 matrix. It applies the result
-	 * to the provided instance and also returns it.
-	 * 	 * 
+	 * Transform a Vector using this 4x4 matrix. This is basically a 4 elements vector 
+	 * multiplication and subsequent normalization.
+	 * 
+	 * It applies the result to the provided instance and also returns it.
+	 * 	
 	 * @param point  
 	 * @return point
 	 */
-	public Vector3f transformPoint(Vector3f point)
+	public Vector3f multiply(Vector3f point)
 	{
 		float d = 1.0f / (point.x() * m_[3] + point.y() * m_[7] + point.z() * m_[11] + m_[15]);
-		float x = point.x() * m_[0]  +
+		float x = (point.x() * m_[0]  +
 				point.y() * m_[4]  +
-				point.z() * m_[8]  + 
-				d * m_[12];
+				point.z() * m_[8]  +  m_[12]) * d;
 
-		float y = point.x() * m_[1]  +
+		float y = (point.x() * m_[1]  +
 				point.y() * m_[5]  +
-				point.z() * m_[9]  + 
-				d * m_[13];
+				point.z() * m_[9]  +  m_[13]) * d;
 
-		float z = point.x() * m_[2]   +
+		float z = (point.x() * m_[2]   +
 				point.y() * m_[6]   +
-				point.z() * m_[10]  + 
-				d * m_[14];
+				point.z() * m_[10]  + m_[14]) * d;
 
 		point.set(x, y, z);
 		return point;
@@ -734,7 +735,11 @@ public class Matrix4x4f
 
 
 	/**
-	 * Transform one coordinate using this 4x4 matrix.
+	 * Transform one coordinate using this 4x4 matrix. 
+	 * 
+	 * This method will only give correct results if the matrix is a 
+	 * classical transformation matrix (ie. scale, rotate, translate or
+	 * a combination of the three)
 	 * 
 	 * @param point  [x0,y0,z0]
 	 * @return       Result of operation: [x0',y0',z0']
@@ -763,6 +768,10 @@ public class Matrix4x4f
 	/**
 	 * Transform a set of 3D coordinates using this 4x4 matrix.
 	 * The result of the operation is put back in the original array.
+	 * 
+	 * This method will only give correct results if the matrix is a 
+	 * classical transformation matrix (ie. scale, rotate, translate or
+	 * a combination of the three)
 	 * 
 	 * @param points  Points to transform [x0,y0,z0,x1,y1,z1,...]
 	 */
@@ -794,6 +803,10 @@ public class Matrix4x4f
 	 * The result of the operation is put back in the original array
 	 * rounded to the nearest integer.
 	 * 
+	 * This method will only give correct results if the matrix is a 
+	 * classical transformation matrix (ie. scale, rotate, translate or
+	 * a combination of the three)
+	 * 
 	 * @param points  Points to transform [x0,y0,x1,y1,...].
 	 */
 	public void transformXyPoints (float[] points)
@@ -815,6 +828,10 @@ public class Matrix4x4f
 	/**
 	 * Transform a set of 3D coordinates using this 4x4 matrix.
 	 * The result of the operation is put back in the original array.
+	 * 
+	 * This method will only give correct results if the matrix is a 
+	 * classical transformation matrix (ie. scale, rotate, translate or
+	 * a combination of the three)
 	 * 
 	 * @param points  Points to transform [x0,y0,z0,x1,y1,z1,...].
 	 */
@@ -846,6 +863,10 @@ public class Matrix4x4f
 	 * The result of the operation is put back in the original array
 	 * rounded to the nearest integer.
 	 * 
+	 * This method will only give correct results if the matrix is a 
+	 * classical transformation matrix (ie. scale, rotate, translate or
+	 * a combination of the three)
+	 * 
 	 * @param points  Points to transform [x0,y0,x1,y1,...].
 	 */
 	public void transformXyPoints (int[] points)
@@ -861,8 +882,6 @@ public class Matrix4x4f
 			points[i + 1] = (int) Math.round (y);
 		}
 	}
-
-
 
 	/**
 	 * multiply the specified translation matrix with this matrix.
@@ -891,8 +910,6 @@ public class Matrix4x4f
 		return this;
 	}
 
-
-
 	/**
 	 * Apply rotation around X axis to this matrix.
 	 * 
@@ -914,8 +931,6 @@ public class Matrix4x4f
 		multiply (rotationMatrix);
 		return this;
 	}
-
-
 
 	/**
 	 * Apply rotation around Y axis to this matrix.
@@ -939,8 +954,6 @@ public class Matrix4x4f
 		return this;
 	}
 
-
-
 	/**
 	 * Apply rotation around z axis to this matrix.
 	 * 
@@ -963,7 +976,6 @@ public class Matrix4x4f
 		return this;
 	}
 
-
 	/**
 	 * Apply rotation around an arbitrary axis.
 	 *
@@ -975,7 +987,7 @@ public class Matrix4x4f
 	 * @param p1     Second point defining the axis (x,y,z)
 	 * @return this instance
 	 */
-	public Matrix4x4f rotate (float angle, float[] p0, float[] p1)
+	public Matrix4x4f rotate(float angle, float[] p0, float[] p1)
 	{
 		// Represent axis of rotation by a unit vector [a,b,c]
 		float a = p1[0] - p0[0];
@@ -1084,7 +1096,7 @@ public class Matrix4x4f
 	 * @param quat   normalized Quaternion
 	 * @return this instance
 	 */
-	public Matrix4x4f rotate (Quaternionf quat){
+	public Matrix4x4f rotate(Quaternionf quat){
 		multiply(new Matrix4x4f(quat));
 		return this;
 	}
@@ -1097,7 +1109,7 @@ public class Matrix4x4f
 	 * @param zScale  Scaling in z direction.
 	 * @return this instance
 	 */
-	public Matrix4x4f scale (float xScale, float yScale, float zScale)
+	public Matrix4x4f scale(float xScale, float yScale, float zScale)
 	{
 		Matrix4x4f  scalingMatrix = new Matrix4x4f(xScale, yScale, zScale);
 		multiply (scalingMatrix);
@@ -1110,7 +1122,7 @@ public class Matrix4x4f
 	 * @param scale  Scaling Vector3f.
 	 * @return this instance
 	 */
-	public Matrix4x4f scale (Vector3f scale)
+	public Matrix4x4f scale(Vector3f scale)
 	{
 		scale(scale.x(), scale.y(), scale.z());
 		return this;
@@ -1124,15 +1136,13 @@ public class Matrix4x4f
 	 * @param zScale      Scaling in z direction.
 	 * @param fixedPoint  Scaling origo.
 	 */
-	public void scale (float xScale, float yScale, float zScale,
+	public void scale(float xScale, float yScale, float zScale,
 			Vector3f fixedPoint)
 	{
 		translate(fixedPoint.scaleMake(-1.0f));
 		scale(xScale, yScale, zScale);
 		translate(fixedPoint);
 	}
-
-
 
 	/**
 	 * Invert this 4x4 matrix.
@@ -1227,7 +1237,6 @@ public class Matrix4x4f
 		return this;
 	}
 
-
 	/**
 	 * Return the inverse of the specified matrix without modifying this instance
 	 * 
@@ -1237,8 +1246,6 @@ public class Matrix4x4f
 		return clone().invert();
 	}
 
-
-
 	/**
 	 * Solve the A x = b equation, where A is this 4x4 matrix, b is the
 	 * specified result vector and the returned vector is the unknown x.
@@ -1246,15 +1253,9 @@ public class Matrix4x4f
 	 * @param vector  Result vector
 	 * @return        Unknown vector.
 	 */
-	public Vector4d solve (Vector4d vector)
-	{
-		Matrix4x4f inverse = new Matrix4x4f (this);
-		inverse.invert();
-		Vector4d result = inverse.multiplyRow (vector);
-		return result;
+	public Vector4d solve(Vector4d vector){
+		return invertMake().multiply(vector);
 	}
-
-
 
 	/**
 	 * Make this 4x4 matrix a world-2-device transformation matrix.
@@ -1432,6 +1433,8 @@ public class Matrix4x4f
 		so.set(parts.stretch.x(), parts.stretch.y(), parts.stretch.z(), parts.stretch.w());
 	}
 
+	
+	
 	/* Decompose 4x4 affine matrix A as TFRUK(U transpose), where t contains the
 	 * translation components, q contains the rotation R, u contains U, k contains
 	 * scale factors, and f contains the sign of the determinant.
@@ -1463,7 +1466,6 @@ public class Matrix4x4f
 		parts.stretch.multiply(p);
 	}
 	
-
 	private class AffineParts{
 
 		Vector4d translation;     // t Translation Component;
@@ -1693,7 +1695,7 @@ public class Matrix4x4f
 	 * matrix of the scale factors, then S = U K (U transpose). Uses Jacobi method.
 	 * See Gene H. Golub and Charles F. Van Loan. Matrix Computations. Hopkins 1983.
 	 */
-	Quaternionf spectDecomp(double[][] S, double[][] U)
+	private Quaternionf spectDecomp(double[][] S, double[][] U)
 	{
 		double[] Diag = new double[3];
 		double[] OffD = new double[3]; /* OffD is off-diag (by omitted index) */
@@ -2013,7 +2015,7 @@ public class Matrix4x4f
 	 * @param M
 	 * @param u
 	 */
-	void reflect_cols(double[][] M, double[] u)
+	private void reflect_cols(double[][] M, double[] u)
 	{
 		int i, j;
 		for (i=0; i<3; i++) {
@@ -2028,7 +2030,7 @@ public class Matrix4x4f
 	 * @param M
 	 * @param u
 	 */
-	void reflect_rows(double[][] M, double[] u)
+	private void reflect_rows(double[][] M, double[] u)
 	{
 		int i, j;
 		for (i=0; i<3; i++) {
@@ -2044,7 +2046,7 @@ public class Matrix4x4f
 	 * @param MadjT
 	 * @param Q
 	 */
-	void do_rank2(double[][] M, double[][] MadjT, double[][] Q)
+	private void do_rank2(double[][] M, double[][] MadjT, double[][] Q)
 	{
 		double[] v1 = new double[3];
 		double[] v2 = new double[3];
