@@ -151,7 +151,7 @@ public class Camera extends Node {
 	}
 
 	/**
-	 * Get the viewport ray in form of a linef object.
+	 * Get the viewport ray in world coordinates in form of a linef object.
 	 * 
 	 * @param screenPosX
 	 * @param screenPosY
@@ -163,7 +163,7 @@ public class Camera extends Node {
 	}
 
 	/**
-	 * Get the viewport ray in form of a linef object.
+	 * Get the viewport ray in world coordinates in form of a linef object.
 	 * 
 	 * @param screenPosX
 	 * @param screenPosY
