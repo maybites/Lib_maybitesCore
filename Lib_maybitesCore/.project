@@ -2,7 +2,8 @@
 <projectDescription>
 	<name>Lib_maybitesCore</name>
 	<comment></comment>
-	<projects></projects>
+	<projects>
+	</projects>
 	<buildSpec>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
@@ -15,7 +16,7 @@
 			<arguments>
 				<dictionary>
 					<key>LaunchConfigHandle</key>
-					<value>&lt;project&gt;/.externalToolBuilders/New_Builder (1).launch</value>
+					<value>&lt;project&gt;/.externalToolBuilders/CoreExport.launch</value>
 				</dictionary>
 			</arguments>
 		</buildCommand>
