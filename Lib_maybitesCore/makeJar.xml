@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="Lib_maybitesCore" default="prepare" basedir=".">
+<project name="Lib_maybitesCore" default="default" basedir=".">
 	<description>
  		======================================================================================
 			Processing.org -> Eclipse Ant Builder for Applets and Applications
@@ -9,62 +9,80 @@
 	<property name="main.class.name" value="" />
 	<property name="jar.name" value="maybitesCore.jar" />
 	<property name="export.dir" value="${maybites.core.export.dir}" />
+	<property name="exportLibrary" value="0" />
 	<property name="createJavaDoc" value="0" />
-
+	
 	<path id="library-classpath">
-		<fileset dir="${libraryClasspath}">
-			<!-- #### (3) add the jar files that are required for compiling. edit name.
-				 for more include files. duplicate <include name="" /> #### -->
-			<!--include name="core.jar"/-->
-		</fileset>
 	</path>
+	
+	<!-- 
+ 	 		==================================================================
+ 	 			DO NOT CHANGE BELOW UNLESS YOU KNOW WHAT YOU ARE DOIN
+ 	 		==================================================================-->
 
-	<!--
- 		==================================================================
- 			DO NOT CHANGE BELOW UNLESS YOU KNOW WHAT YOU ARE DOIN
- 		==================================================================-->
-
-	<property name="project.resources.dir" value="resources" />
+	<property name="project.javadoc.dir" value="javadoc" />
 	<property name="project.bin.dir" value="bin" />
 	<property name="project.src.dir" value="src" />
-	<property name="project.libs.dir" value="libs" />
-	<property name="project.build.dir" value="build" />
-	<property name="project.build.library.dir" value="build/library" />
-	<property name="project.build.reference.dir" value="build/reference" />
+	<property name="project.build.jar.dir" value="bin" />
+	<property name="build.dir" value="build" />
+	<property name="build.library.dir" value="build/library" />
+	<property name="build.reference.dir" value="build/reference" />
+	<property name="build.source.dir" value="build/src" />
 
-	<property file="${project.resources.dir}/building.properties" />
+	<!-- load the javadoc properties -->
+	<property file="${project.javadoc.dir}/building.properties" />
 
-	<target name="prepare" description="prepare export">
+	<target name="default" description="check conditions">
+		<!-- create jar inside bin-->
+		<antcall target="jar.build" />
+		<copy file="${project.build.jar.dir}/${jar.name}" todir="${build.library.dir}"/>
 
-		<delete dir="${export.dir}" />
-		<mkdir dir="${export.dir}" />
-
-		<mkdir dir="${project.libs.dir}" />
-		<mkdir dir="${project.build.dir}" />
+		<!-- export library with the whole shebang-->
+		<condition property="makeExport">
+			<equals arg1="${exportLibrary}" arg2="1" />
+		</condition>
+		<antcall target="make.export" />
 		
-		<copy todir="${project.build.dir}/src">
+	</target>
+	
+	<target name="make.export" if="makeExport">
+		
+		<!-- remove build directory -->
+		<mkdir dir="${build.dir}" />
+
+		<!-- copy source to build dir-->
+		<copy todir="${build.source.dir}">
 			<fileset dir="${project.src.dir}" />
 		</copy>
 
-		<copy file="MIT.LICENSE" todir="${project.build.dir}" />
+		<!-- copy license to build dir-->
+		<copy file="MIT.LICENSE" todir="${build.dir}" />
 
+		<!-- create java doc directory inside build dir-->
+		<mkdir dir="${build.reference.dir}" />
+
+		<!-- create java doc reference-->
 		<condition property="makeDoc">
-			<equals arg1="${createJavaDoc}" arg2="1"/>
+			<equals arg1="${createJavaDoc}" arg2="1" />
 		</condition>
-
 		<antcall target="doc.build" />
-		<antcall target="jar.build" />
 
+		<!-- cleanup export directory-->
+		<delete dir="${export.dir}" />
+		<mkdir dir="${export.dir}" />
+
+		<!-- copy build directory to export directory-->
 		<copy todir="${export.dir}">
-			<fileset dir="${project.build.dir}" />
+			<fileset dir="${build.dir}" />
 		</copy>
 
+		<!-- remove build directory-->
+		<delete dir="${build.dir}" />
 	</target>
 
+
 	<target name="jar.build">
-		<delete dir="${project.build.library.dir}" />
-		<mkdir dir="${project.build.library.dir}" />
-		<jar jarfile="${project.build.library.dir}/${jar.name}">
+		<jar jarfile="${project.build.jar.dir}/${jar.name}">
 			<fileset dir="${project.bin.dir}">
 				<include name="**/*.class" />
 			</fileset>
@@ -76,18 +94,8 @@
 	</target>
 
 	<target name="doc.build" if="makeDoc">
-		<delete dir="${project.build.reference.dir}" />
-		<mkdir dir="${project.build.reference.dir}" />
 		<!-- create the java reference of the library -->
-		<javadoc bottom="library ${libraryName} by ${author}. ${copyright}" 
-			destdir="${project.build.reference.dir}" 
-			verbose="false" 
-			stylesheetfile="${project.resources.dir}/stylesheet.css" 
-			doctitle="Javadocs: ${libraryName}" 
-			public="true" 
-			version="false" 
-			windowtitle="Javadocs: ${libraryName}">
-			
+		<javadoc bottom="library ${javadoc.libraryName} by ${javadoc.author}. ${javadoc.copyright}" destdir="${build.reference.dir}" verbose="false" stylesheetfile="${project.javadoc.dir}/stylesheet.css" doctitle="Javadocs: ${javadoc.libraryName}" public="true" version="false" windowtitle="Javadocs: ${javadoc.libraryName}">
 			<classpath>
 				<path refid="library-classpath" />
 			</classpath>
@@ -97,7 +105,7 @@
 			<tag name="extended" scope="all" enabled="false" />
 			<tag name="usage" scope="all" enabled="false" />
 
-			<taglet name="ExampleTaglet" path="${project.resources.dir}/code" />
+			<taglet name="ExampleTaglet" path="${project.javadoc.dir}/code" />
 			<fileset dir="${project.src.dir}" defaultexcludes="yes">
 				<!-- #### (9) add packages to be added to reference. #### -->
 				<include name="**/*" />
@@ -106,3 +114,4 @@
 	</target>
 
 </project>
+

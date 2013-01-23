@@ -31,7 +31,7 @@ public class Color
     private static final long serialVersionUID = -7695130053845414343L;
 
     public float r;
-
+    
     public float g;
 
     public float b;
