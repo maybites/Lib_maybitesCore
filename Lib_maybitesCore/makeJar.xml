@@ -21,7 +21,7 @@
  	 		==================================================================-->
 
 	<property name="project.javadoc.dir" value="javadoc" />
-	<property name="project.bin.dir" value="bin" />
+	<property name="project.bin.dir" value="bin/classes" />
 	<property name="project.src.dir" value="src" />
 	<property name="project.build.jar.dir" value="bin" />
 	<property name="build.dir" value="build" />
