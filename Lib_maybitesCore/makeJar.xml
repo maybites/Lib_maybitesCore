@@ -9,7 +9,7 @@
 	<property name="main.class.name" value="" />
 	<property name="jar.name" value="maybitesCore.jar" />
 	<property name="export.dir" value="${maybites.core.export.dir}" />
-	<property name="exportLibrary" value="0" />
+	<property name="exportLibrary" value="1" />
 	<property name="createJavaDoc" value="0" />
 	
 	<path id="library-classpath">
