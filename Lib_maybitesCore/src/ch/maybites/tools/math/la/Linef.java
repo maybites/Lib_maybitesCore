@@ -207,14 +207,15 @@ public class Linef{
 		return (getDistance(otherLine) == 0.0f)? true: false;
 	}
 
-	public void transform(Matrix4x4f mat){
-		Quaternionf rotate = new Quaternionf();
-		Vector3f translate = new Vector3f();
-		Vector3f scale = new Vector3f();
-		mat.decompose(translate, rotate, scale, new Quaternionf());
-		
+	/**
+	 * Applies the transformation matrix to this linef-instance and returns it
+	 * @param mat
+	 * @return the transformed instance
+	 */
+	public Linef transform(Matrix4x4f mat){
 		mat.multiply(theOrigin);
-		direction.scale(scale).rotateBy(rotate);
+		direction = mat.multiply(theOtherPoint()).subMake(theOrigin);
+		return this;
 	}
 
 	public String toString() {
