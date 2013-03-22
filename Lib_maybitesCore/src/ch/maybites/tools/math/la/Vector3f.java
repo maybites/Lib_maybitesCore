@@ -498,6 +498,24 @@ public class Vector3f
 		return v_[0] * theVector.v_[0] + v_[1] * theVector.v_[1] + v_[2] * theVector.v_[2];
 	}
 
+	/**
+	 * Returns the, by the provided matrix, transformed instance of this vector.
+	 * @param matrix
+	 * @return transformed instance
+	 */
+	public Vector3f transform(Matrix4x4f matrix){
+		return matrix.multiply(this);
+	}
+
+	/**
+	 * Returns the, by the provided matrix, transformed clone of this vector. This
+	 * instance stays unchanged
+	 * @param matrix
+	 * @return cloned and transformed vector of this instance
+	 */
+	public Vector3f transformMake(Matrix4x4f matrix){
+		return matrix.multiply(this.clone());
+	}
 
 	/**
 	 * Sets the vector to the given one and norms it to the length of 1
