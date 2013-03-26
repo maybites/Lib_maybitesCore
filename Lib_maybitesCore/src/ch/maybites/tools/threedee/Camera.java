@@ -73,7 +73,8 @@ public class Camera extends Node {
 	public Vector3f worldToScreen(Vector3f world, Matrix4x4f viewProjectionMatrix, Viewport _viewport) {
 
 		// create clip coordinate
-		Vector3f clip = viewProjectionMatrix.multiply(world);
+		Vector3f clip = viewProjectionMatrix.multiplyMake(world);
+		clip.divide(clip.z());
 		Vector3f ScreenXYZ = new Vector3f();
 
 		//transform clip to screen
@@ -187,7 +188,7 @@ public class Camera extends Node {
 		
 		float fov = cam.frustum.getFOV();
 		
-		Vector3f world = new Vector3f(-1, 0, -10);
+		Vector3f world = new Vector3f(0.693359f, -0.048828f, -0.083984f);
 		
 		Vector4d clip = new Vector4d(world);
 		
