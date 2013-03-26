@@ -82,7 +82,7 @@ public class DynDistributor<ObjectType, CallbackType> {
 	 * Calling this method returns a new Subscription
 	 * 
 	 * Attention: it needs to be connected!
-	 * In order to enable it, one must call the connect() method
+	 * In order to enable it, one must call the subscribe() method
 	 * 
 	 * @param subscriber
 	 * @param objectname is the identifier of the subscribed object
