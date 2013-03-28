@@ -255,6 +255,47 @@ public class DynDistributor<ObjectType, CallbackType> {
 	}	
 	
 	/**
+	 * This function clears all subscriptions and publications.
+	 * 
+	 * !!!! WARNING: !!!!
+	 * 
+	 * This function can cause undesired results with publishers and subscribers. While it
+	 * tries to release all subscriptions and subsequently publications as gracefully as 
+	 * possible, and the subscribers and publishers will be notified duly of their disconnectivity, 
+	 * their responsible clients might still believe to have a registered subscription, 
+	 * respectively a registered publication.
+	 * 
+	 * THEREFORE: It should be only called during a cleanup process when it is save to assume, 
+	 * that there are no more subscribers and publishers connected.
+	 */
+	public void clear(){
+		Iterator<DynSubscription> s = subscriptions.iterator();
+		while(s.hasNext()){
+			DynSubscription subscription = s.next();
+			if(subscription.isConnected()){
+				subscription.publication.removeSubscription(subscription);
+				subscription.publication.publisher.subscriptionDisconnected(name, subscription);
+				subscription.set(null);
+			}
+			s.remove();
+		}
+
+		Iterator<DynPublication> p = publications.iterator();
+		while(p.hasNext()){
+			DynPublication publication = p.next();
+			while(publication.hasSubscriptions()){
+				DynSubscription subscription = publication.removeNextSubscription();
+				subscription.subscriber.publicationDisonnected(name, subscription);
+				subscription.set(null);
+			}
+			p.remove();
+		}
+		
+		subscriptions.clear();
+		publications.clear();
+	}
+	
+	/**
 	 * Checks if a Publication with the provided identifier has already been published
 	 * @param publicationname
 	 */
