@@ -52,4 +52,8 @@ public class Viewport {
 		width = _width;
 		height = _height;
 	}
+
+	public Viewport clone(){
+		return new Viewport(posX, posY, width, height);
+	}
 }

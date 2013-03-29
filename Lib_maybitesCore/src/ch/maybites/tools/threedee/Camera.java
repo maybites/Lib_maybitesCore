@@ -22,6 +22,20 @@ public class Camera extends Node {
 		viewport = new Viewport(width, height);
 	}
 	
+	public Camera clone(){
+		Camera clone = new Camera();
+		if(parent != null)
+			clone.parent	 = parent.clone();
+		clone.axis			 = axis.clone();
+		clone.position		 = position.clone();
+		clone.orientation	 = orientation.clone();
+		clone.scale			 = scale.clone();
+		clone.frustum		 = frustum.clone();
+		clone.viewport		 = viewport.clone();
+		clone.createMatrix();
+		return clone;
+	}
+	
 	public Matrix4x4f getProjectionMatrix(){
 		return frustum.getProjectionMatrix();
 	}

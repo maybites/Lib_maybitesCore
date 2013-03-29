@@ -94,7 +94,7 @@ public class Frustum {
 		zFar = _zFar;	
 		update();
 	}
-	
+
 	/**
 	 * Creates a frustum instance based on a projection matrix. If the matrix is not a valid
 	 * projection matrix it will be set to a standard frustum
@@ -131,6 +131,10 @@ public class Frustum {
 			    updateFovy();
 	    	}
 	    }
+	}
+	
+	public Frustum clone(){
+		return new Frustum(get());
 	}
 	
 	public boolean isOrtho(){

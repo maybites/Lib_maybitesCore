@@ -38,11 +38,11 @@ import ch.maybites.tools.math.la.Vector3f;
  */
 public class Node {
 	
-	private Vector3f position;
-	private Quaternionf orientation;
-	private Vector3f scale;
+	protected Vector3f position;
+	protected Quaternionf orientation;
+	protected Vector3f scale;
 	
-	private Vector3f[] axis;
+	protected Vector3f[] axis;
 	
 	private Matrix4x4f localTransfromMatrix;
 	
@@ -61,6 +61,18 @@ public class Node {
 		createMatrix();
 	}
 
+	public Node clone(){
+		Node clone = new Node();
+		clone.axis = axis.clone();
+		clone.position = position.clone();
+		clone.orientation = orientation.clone();
+		clone.scale = scale.clone();
+		if(parent != null)
+			clone.parent = parent.clone();
+		clone.createMatrix();
+		return clone;
+	}
+	
 	/**
 	 * Uses the provided instance as the local position. 
 	 * @param pos sets its as position
@@ -284,7 +296,7 @@ public class Node {
 		wasTransformed = false;
 	}
 	
-	private void createMatrix() {
+	protected void createMatrix() {
 		//if(isMatrixDirty) {
 		//	isMatrixDirty = false;
 		localTransfromMatrix = new Matrix4x4f();
