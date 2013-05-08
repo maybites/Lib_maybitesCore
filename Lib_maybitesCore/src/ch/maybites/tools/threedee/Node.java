@@ -317,4 +317,39 @@ public class Node {
 		setTransformed();
 	}
 
+	public static void main(String[] args) {
+        /* multiplying matrices */
+		
+		Node n1 = new Node();
+		n1.setOrientation(new Vector3f(15, 10, 10));
+
+		Node n2 = new Node();
+		n2.setOrientation(new Vector3f(0, 5, 0));
+		
+		Matrix4x4f m1 = n1.getLocalTransformationMatrix();
+		Matrix4x4f m2 = n2.getLocalTransformationMatrix();
+	
+		Matrix4x4f r = m1.multiplyMake(m2.invertMake());
+		
+		Quaternionf qm = r.getQuaternion();
+		Vector3f eulerM = qm.getEuler();
+
+		System.out.println("Euler: a="+eulerM.x() + " b=" + eulerM.y() + " c=" + eulerM.z());
+
+		Quaternionf q1 = new Quaternionf(15, 10, 10);
+		Quaternionf q2 = new Quaternionf(0, 5, 0);
+		
+		m1.set(q1);
+		m2.set(q2);
+		
+		r = m1.multiplyMake(m2.invertMake());
+		
+		Quaternionf qr = q2.multiplyMake(q1.inverseMake());
+		
+		Vector3f euler = qr.getEuler();
+		
+		System.out.println("Euler: a="+euler.x() + " b=" + euler.y() + " c=" + euler.z());
+
+	}
+
 }

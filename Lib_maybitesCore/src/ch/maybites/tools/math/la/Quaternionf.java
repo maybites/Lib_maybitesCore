@@ -285,7 +285,30 @@ public class Quaternionf {
 		v_[2] = theA.w() * theB.z() + theA.x() * theB.y() - theA.y() * theB.x() + theA.z() * theB.w();
 		v_[3] = theA.w() * theB.w() - theA.x() * theB.x() - theA.y() * theB.y() - theA.z() * theB.z();
 	}
-		
+
+	/**
+	 * Set this quaternion as a result of the multiplication of the two specified quaternions.
+	 * 
+	 * This method uses the factorized-method and is supposed to be faster, but doesnt give
+	 * the same results (from the 4th digit behind the point)
+	 * 
+	 * @param theA
+	 * @param theB
+	 */
+	public void setMultiplyFactorized(Quaternionf a, Quaternionf b) {
+
+		float ww = (a.z() + a.x()) * (b.x() + b.y());
+		float yy = (a.w() - a.y()) * (b.w() + b.z());
+		float zz = (a.w() + a.y()) * (b.w() - b.z());
+		float xx = ww + yy + zz;
+		float qq = 0.5f * (xx + (a.z() - a.x()) * (b.x() - b.y()));
+
+		v_[0] = qq - xx + (a.x() + a.w()) * (b.x() + b.w());
+		v_[1] = qq - yy + (a.w() - a.x()) * (b.y() + b.z());
+		v_[2] = qq - zz + (a.z() + a.y()) * (b.w() - b.x());
+		v_[3] = qq - ww + (a.z() - a.y()) * (b.y() - b.z());
+	}
+	
 	/**
 	 * Multiply this quaternion with the specified quaternion and return this instance
 	 * @param theA
@@ -411,9 +434,14 @@ public class Quaternionf {
 	public static void main(String[] args) {
         /* multiplying matrices */
 	
-		Quaternionf q = new Quaternionf(0, 0, 30);
+		Quaternionf q1 = new Quaternionf(15, 10, 10);
+		Quaternionf q2 = new Quaternionf(0, 5, 0);
 		
-		System.out.println();
+		Quaternionf qr = q1.multiplyMake(q2.inverse());
+		
+		Vector3f euler = qr.getEuler();
+		
+		System.out.println("Euler: a="+euler.x() + " b=" + euler.y() + " c=" + euler.z());
 
 	}
 
