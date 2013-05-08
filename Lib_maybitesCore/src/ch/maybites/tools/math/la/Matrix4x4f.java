@@ -300,6 +300,33 @@ public class Matrix4x4f
 		m_[15] = m33;  
 	}
 
+	/**
+	 * Fills this 4x4 with a 3x3 rotation matrix
+	 * 
+	 * @param rot_matrix3x3
+	 */
+	public void setRotationMatrix (float[] rot_matrix3x3)
+	{
+		m_[0]  = rot_matrix3x3[0];
+		m_[1]  = rot_matrix3x3[1];
+		m_[2]  = rot_matrix3x3[2];
+		m_[3]  = 0;  
+
+		m_[4]  = rot_matrix3x3[3];
+		m_[5]  = rot_matrix3x3[4];
+		m_[6]  = rot_matrix3x3[5];
+		m_[7]  = 0;  
+
+		m_[8]  = rot_matrix3x3[6];
+		m_[9]  = rot_matrix3x3[7];
+		m_[10] = rot_matrix3x3[8];
+		m_[11] = 0;  
+
+		m_[12] = 0;
+		m_[13] = 0;
+		m_[14] = 0;
+		m_[15] = 1;  
+	}
 
 	/**
 	 * Sets this matrix as a perspective projection matrix
