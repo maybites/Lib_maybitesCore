@@ -84,18 +84,17 @@ public class Camera extends Node {
 	 * @return screen coordinates. 
 	 * 			the z-value is between -1. (near clipping plane) and 1. (far clipping plane)
 	 */
-	public Vector3f worldToScreen(Vector3f world, Matrix4x4f viewProjectionMatrix, Viewport _viewport) {
+	public Vector3f worldToScreen(final Vector3f world, final Matrix4x4f viewProjectionMatrix, final Viewport _viewport) {
 
 		// create clip coordinate
 		Vector3f clip = viewProjectionMatrix.multiplyMake(world);
-		clip.divide(clip.z());
 		Vector3f ScreenXYZ = new Vector3f();
 
 		//transform clip to screen
 		ScreenXYZ.setX((float)(clip.x() + 1.0f) / 2.0f * _viewport.width + _viewport.posX);
-		ScreenXYZ.setY((float)(1.0f - clip.y()) / 2.0f * _viewport.height + _viewport.posY);
+		ScreenXYZ.setY((float)(clip.y() + 1.0f) / 2.0f * _viewport.height + _viewport.posY);
 		ScreenXYZ.setZ((float)clip.z());
-
+		
 		return ScreenXYZ;
 	}
 	
@@ -145,13 +144,14 @@ public class Camera extends Node {
 		//convert from screen to clip
 		Vector3f clip = new Vector3f();
 		clip.setElement(0, 2.0f * (screen.x() - _viewport.posX) / _viewport.width - 1.0f);
-		clip.setElement(1, 1.0f - 2.0f * (screen.y() - _viewport.posY) / _viewport.height);
+		clip.setElement(1, 2.0f * (screen.y() - _viewport.posY) / _viewport.height - 1.0f);
 		clip.setElement(2, screen.z());
 
 		//convert clip to world
 		return invViewProjectionMatrix.multiply(clip);
 	}
 	
+
 	/**
 	 * Screen to World Transformation.
 	 * 
@@ -168,25 +168,25 @@ public class Camera extends Node {
 	/**
 	 * Get the viewport ray in world coordinates in form of a linef object.
 	 * 
-	 * @param screenPosX
-	 * @param screenPosY
+	 * @param screenPosX relative from the lower left corner
+	 * @param screenPosY relative from the lower left corner
 	 * @return linef with the origin at the near clipping plane and pointing to the far end 
 	 * 		of the frustum
 	 */
-	public Linef getViewportRay(int screenPosX, int screenPosY){
+	public Linef getViewportRay(float screenPosX, float screenPosY){
 		return getViewportRay(screenPosX, screenPosY, viewport);
 	}
 
 	/**
 	 * Get the viewport ray in world coordinates in form of a linef object.
 	 * 
-	 * @param screenPosX
-	 * @param screenPosY
+	 * @param screenPosX relative from the lower left corner
+	 * @param screenPosY relative from the lower left corner
 	 * @param _viewport provide a custom viewport
 	 * @return linef with the origin at the near clipping plane and pointing to the far end 
 	 * 		of the frustum
 	 */
-	public Linef getViewportRay(int screenPosX, int screenPosY, Viewport _viewport){
+	public Linef getViewportRay(float screenPosX, float screenPosY, Viewport _viewport){
 		Vector3f near = screenToWorld(new Vector3f(screenPosX, screenPosY, -1), getViewProjectionMatrix().invert(), _viewport);
 		Vector3f far = screenToWorld(new Vector3f(screenPosX, screenPosY, 1), getViewProjectionMatrix().invert(), _viewport);
 		Linef ret = new Linef();

@@ -6,25 +6,28 @@ public class Viewport {
 	 * Width of viewport
 	 */
 	public float width;
+	
 	/**
 	 * Height of viewport
 	 */
 	public float height;
+	
 	/**
-	 * upper Left Corner of viewport
+	 * lower Left Corner of viewport
 	 */
 	public float posX;
+	
 	/**
-	 * upper Left Corner of viewport
+	 * lower Left Corner of viewport
 	 */
 	public float posY;
 
 	/**
-	 * Create Viewport with default settings
+	 * Create Viewport with normalized values
 	 */
 	public Viewport(){
-		width = 320;
-		height = 240;
+		width = 1.f;
+		height = 1.f;
 	}
 
 	/**
@@ -41,8 +44,8 @@ public class Viewport {
 	/**
 	 * Create Viewport
 	 * 
-	 * @param _posX upper left corner
-	 * @param _posY upper left corner
+	 * @param _posX lower left corner
+	 * @param _posY lower left corner
 	 * @param _width
 	 * @param _height
 	 */
@@ -51,6 +54,18 @@ public class Viewport {
 		posY = _posY;
 		width = _width;
 		height = _height;
+	}
+	
+	/**
+	 * Viewport coordinates in form of a float array, which sets the 
+	 * left(=xPos), bottom(=yPos), width, and height of the viewport
+	 * @param _viewport
+	 */
+	public Viewport(float[] _viewport){
+		posX = _viewport[0];
+		posY = _viewport[1];
+		width = _viewport[2];
+		height = _viewport[3];
 	}
 
 	public Viewport clone(){
