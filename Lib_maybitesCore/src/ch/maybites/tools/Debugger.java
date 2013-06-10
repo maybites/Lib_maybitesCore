@@ -46,7 +46,7 @@ public class Debugger {
 	private int myLevel;
 	private boolean _showClassNames;
 	
-	static private Debugger _instance = new Debugger(LEVEL_VERBOSE);
+	static private Debugger _instance = new Debugger(LEVEL_INFO);
 
 	static public void showClassNames(){
 		
@@ -147,6 +147,11 @@ public class Debugger {
 		if(myLevel <= LEVEL_INFO)
 			message(o, message, LEVEL_INFO);
 	}
+	
+	public void infoMessage(String o, String message){
+		if(myLevel <= LEVEL_INFO)
+			message(o, message, LEVEL_INFO);
+	}
 
 	/**
 	 * 3rd Lowest Priority Message
@@ -154,6 +159,10 @@ public class Debugger {
 	 * @param message
 	 */
 	public static void info(Class o, String message){
+		getInstance().infoMessage(o, message);
+	}
+
+	public static void info(String o, String message){
 		getInstance().infoMessage(o, message);
 	}
 
@@ -185,6 +194,11 @@ public class Debugger {
 			messageErr(o, message, LEVEL_ERROR);
 	}
 	
+	public void errorMessage(String o, String message){
+		if(myLevel <= LEVEL_ERROR)
+			messageErr(o, message, LEVEL_ERROR);
+	}
+	
 	/**
 	 * Error Message - very severe
 	 * @param o
@@ -193,8 +207,17 @@ public class Debugger {
 	public static void error(Class o, String message){
 		getInstance().errorMessage(o, message);
 	}
+	
+	public static void error(String o, String message){
+		getInstance().errorMessage(o, message);
+	}
 
 	public void fatalMessage(Class o, String message){
+		if(myLevel <= LEVEL_FATAL)
+			messageErr(o, message, LEVEL_FATAL);
+	}
+	
+	public void fatalMessage(String o, String message){
 		if(myLevel <= LEVEL_FATAL)
 			messageErr(o, message, LEVEL_FATAL);
 	}
@@ -205,6 +228,10 @@ public class Debugger {
 	 * @param message
 	 */
 	public static void fatal(Class o, String message){
+		getInstance().fatalMessage(o, message);
+	}
+	
+	public static void fatal(String o, String message){
 		getInstance().fatalMessage(o, message);
 	}
 
