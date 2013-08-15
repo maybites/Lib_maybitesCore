@@ -169,6 +169,10 @@ public class Node {
 	public Vector3f getScale(){
 		return scale;
 	}
+	
+	public Vector3f getPosition(){
+		return position;
+	}
 
 	/** 
 	 * Returns this node's parent node

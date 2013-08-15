@@ -231,8 +231,9 @@ public class Linef{
 	 * @return the transformed instance
 	 */
 	public Linef transform(Matrix4x4f mat){
-		mat.multiply(theOrigin);
-		direction = mat.multiply(theOtherPoint()).subMake(theOrigin);
+		Vector3f newOrigin = mat.multiplyMake(theOrigin);
+		direction = mat.multiply(theOtherPoint()).subMake(newOrigin);
+		theOrigin = newOrigin;
 		return this;
 	}
 
