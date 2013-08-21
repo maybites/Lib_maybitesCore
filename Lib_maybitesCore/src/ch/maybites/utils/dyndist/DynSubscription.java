@@ -75,6 +75,15 @@ public class DynSubscription<ObjectType, CallbackType>{
 	}
 	
 	/**
+	 * This method returns the Publisher's identifier. It returns this name even if there is no connection
+	 * and therefore no publisher of this name available. 
+	 * @return
+	 */
+	public String getPublicationIdentifier(){
+		return identifier;
+	}
+	
+	/**
 	 * returns true if there is a connection to a publication
 	 * 
 	 * @return false if there is no connection
