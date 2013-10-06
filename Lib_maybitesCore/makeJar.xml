@@ -14,7 +14,9 @@
 	
 	<path id="library-classpath">
 	</path>
-	
+
+	<property name="jar.export1.dir" value="${maybites.beamstreamer.export.dir}"/>
+
 	<!-- 
  	 		==================================================================
  	 			DO NOT CHANGE BELOW UNLESS YOU KNOW WHAT YOU ARE DOIN
@@ -23,7 +25,7 @@
 	<property name="project.javadoc.dir" value="javadoc" />
 	<property name="project.bin.dir" value="bin/classes" />
 	<property name="project.src.dir" value="src" />
-	<property name="project.build.jar.dir" value="bin" />
+	<property name="project.jar.build.dir" value="bin" />
 	<property name="build.dir" value="build" />
 	<property name="build.library.dir" value="build/library" />
 	<property name="build.reference.dir" value="build/reference" />
@@ -35,7 +37,10 @@
 	<target name="default" description="check conditions">
 		<!-- create jar inside bin-->
 		<antcall target="jar.build" />
-		<copy file="${project.build.jar.dir}/${jar.name}" todir="${build.library.dir}"/>
+		<copy file="${project.jar.build.dir}/${jar.name}" todir="${build.library.dir}"/>
+
+		<!-- jar to export dir-->
+			<copy file="${project.jar.build.dir}/${jar.name}" todir="${jar.export1.dir}"/>
 
 		<!-- export library with the whole shebang-->
 		<condition property="makeExport">
@@ -82,7 +87,7 @@
 
 
 	<target name="jar.build">
-		<jar jarfile="${project.build.jar.dir}/${jar.name}">
+		<jar jarfile="${project.jar.build.dir}/${jar.name}">
 			<fileset dir="${project.bin.dir}">
 				<include name="**/*.class" />
 			</fileset>
