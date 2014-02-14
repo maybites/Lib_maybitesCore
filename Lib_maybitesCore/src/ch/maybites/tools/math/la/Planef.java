@@ -148,7 +148,7 @@ public class Planef{
 			return null;
 
 		Vector3f vector = new Vector3f(line.direction);
-		vector.scale((p - normal.dot(line.theOrigin))/normal.dot(vector));
+		vector.scale((p - normal.dot(line.theOrigin))/normal.dot(vector.normalizeMake()));
 		return line.theOrigin.addMake(vector);
 	}
 
