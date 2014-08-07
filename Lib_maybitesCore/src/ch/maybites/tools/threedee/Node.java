@@ -83,12 +83,27 @@ public class Node {
 	}
 	
 	/**
+	 * Sets the Sequence of the calculation of the euler angles
+	 * 	default = 1, 2, 3.
+	 * 		1 = x axis
+	 * 		2 = y axis
+	 * 		3 = z axis
+	 * 
+	 * @param a1 
+	 * @param a2
+	 * @param a3
+	 */
+	public void setEulerRotationSequence(int a1, int a2, int a3){
+		orientation.setEulerAngleSequence(a1, a2, a3);
+	}
+	
+	/**
 	 * Sets the local orientation in euler angles (in degrees)
 	 * @param euler
 	 */
 	public void setOrientation(Vector3f euler){
-		Quaternionf q = new Quaternionf(euler.x(), euler.y(), euler.z());
-		setOrientation(q);
+		orientation.setEulerAngles(euler.x(), euler.y(), euler.z());
+		createMatrix();
 	}
 	
 	/**
