@@ -40,6 +40,11 @@ public class Quaternionf {
 
 	private float[] v_;
 
+	// euler angle sequence
+	private int eas1 = 2;
+	private int eas2 = 3;
+	private int eas3 = 1;
+
 	/**
 	 * Construct an empty Quaternion 
 	 */
@@ -60,13 +65,13 @@ public class Quaternionf {
 
 	/**
 	 * Construct a Quaternion with the specified euler angles.
-	 * @param bank
-	 * @param heading
-	 * @param attitude
+	 * @param xAxis
+	 * @param yAxis
+	 * @param zAxis
 	 */
-	public Quaternionf(float bank, float heading, float attitude) {
+	public Quaternionf(float xAxis, float yAxis, float zAxis) {
 		reset();
-		setEuler(bank, heading, attitude);
+		setEulerAngles(xAxis, yAxis, zAxis);
 	}
 
 	/**
@@ -144,32 +149,99 @@ public class Quaternionf {
 	}
 
 	/**
+	 * Sets the Euler angles in the traditional way (yzx sequence)
+	 * 
+	 * @param heading
+	 * @param attitude
+	 * @param bank
+	 */
+	public final void setEuler(float bank, float heading, float attitude) {
+	    // Assuming the angles are in radians.
+	    float c1 = (float)Math.cos(heading * (float)Const.DEG_TO_RAD/2.f);
+	    float s1 = (float)Math.sin(heading * (float)Const.DEG_TO_RAD/2.f);
+	    float c2 = (float)Math.cos(attitude * (float)Const.DEG_TO_RAD/2.f);
+	    float s2 = (float)Math.sin(attitude * (float)Const.DEG_TO_RAD/2.f);
+	    float c3 = (float)Math.cos(bank * (float)Const.DEG_TO_RAD/2.f);
+	    float s3 = (float)Math.sin(bank * (float)Const.DEG_TO_RAD/2.f);
+	    float c1c2 = c1*c2;
+	    float s1s2 = s1*s2;
+	    v_[3] =c1c2*c3 - s1s2*s3;
+	    v_[0] =c1c2*s3 + s1s2*c3;
+	    v_[1] =s1*c2*c3 + c1*s2*s3;
+	    v_[2] =c1*s2*c3 - s1*c2*s3;
+	}
+	
+	/**
+	 * Sets the Sequence of the calculation of the euler angles
+	 * 	default = 2, 3, 1.
+	 * 		1 = x axis
+	 * 		2 = y axis
+	 * 		3 = z axis
+	 * 
+	 * @param a1 
+	 * @param a2
+	 * @param a3
+	 */
+	public void setEulerAngleSequence(int a1, int a2, int a3){
+		eas1 = a1;
+		eas2 = a2;
+		eas3 = a3;
+	}
+	
+	/**
 	 * Sets this Quaternion according to the euler angles in degrees
 	 * 
 	 * calc based on from http://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToQuaternion/index.htm
 	 * 
-	 * @param bank (x)
-	 * @param heading (y)
-	 * @param attitude (z)
+	 * @param xAxis
+	 * @param yAxis
+	 * @param zAxis
 	 */
-	public void setEuler(float bank, float heading, float attitude) {
-		reset();
-		float angleX = bank * (float)Const.DEG_TO_RAD;
-		float angleY = heading * (float)Const.DEG_TO_RAD;
-		float angleZ = attitude * (float)Const.DEG_TO_RAD;
-		float c1 = (float)Math.cos(angleY);
-		float s1 = (float)Math.sin(angleY);
-		float c2 = (float)Math.cos(angleZ);
-		float s2 = (float)Math.sin(angleZ);
-		float c3 = (float)Math.cos(angleX);
-		float s3 = (float)Math.sin(angleX);
-	    v_[3] = (float)Math.sqrt(1.0f + c1 * c2 + c1*c3 - s1 * s2 * s3 + c2*c3) / 2.0f;
-	    float w4 = (4.0f * v_[3]);
-	    v_[0] = (c2 * s3 + c1 * s3 + s1 * s2 * c3) / w4 ;
-	    v_[1] = (s1 * c2 + s1 * c3 + c1 * s2 * s3) / w4 ;
-	    v_[2] = (-s1 * s3 + c1 * s2 * c3 +s2) / w4 ;
+	public void setEulerAngles(float xAxis, float yAxis, float zAxis) {
+		//if the default sequence is set, use the faster method.
+		if(eas1 == 2 && eas2 == 3 && eas3 == 1){
+			setEuler(xAxis, yAxis, zAxis);
+		}else{		
+			Quaternionf q1 = new Quaternionf();
+			Quaternionf q2 = new Quaternionf();
+			Quaternionf q3 = new Quaternionf();
+			switch(eas1){
+			case 1:
+				q1 = new Quaternionf((float)Math.sin(xAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, 0.f, (float)Math.cos(xAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 2:
+				q1 = new Quaternionf(0.f, (float)Math.sin(yAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, (float)Math.cos(yAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 3:
+				q1 = new Quaternionf(0.f, 0.f, (float)Math.sin(zAxis * (float)Const.DEG_TO_RAD / 2.0), (float)Math.cos(zAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			}
+			switch(eas2){
+			case 1:
+				q2 = new Quaternionf((float)Math.sin(xAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, 0.f, (float)Math.cos(xAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 2:
+				q2 = new Quaternionf(0.f, (float)Math.sin(yAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, (float)Math.cos(yAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 3:
+				q2 = new Quaternionf(0.f, 0.f, (float)Math.sin(zAxis * (float)Const.DEG_TO_RAD / 2.0), (float)Math.cos(zAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			}
+			switch(eas3){
+			case 1:
+				q3 = new Quaternionf((float)Math.sin(xAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, 0.f, (float)Math.cos(xAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 2:
+				q3 = new Quaternionf(0.f, (float)Math.sin(yAxis * (float)Const.DEG_TO_RAD / 2.0), 0.f, (float)Math.cos(yAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			case 3:
+				q3 = new Quaternionf(0.f, 0.f, (float)Math.sin(zAxis * (float)Const.DEG_TO_RAD / 2.0), (float)Math.cos(zAxis * (float)Const.DEG_TO_RAD / 2.0));
+				break;
+			}
+			set(q1.multiply(q2).multiply(q3));
+		}
 	}
-
+	
 	public void set(float theW, Vector3f theVector3f) {
 		v_[0] = theVector3f.x();
 		v_[1] = theVector3f.y();
@@ -434,14 +506,19 @@ public class Quaternionf {
 	public static void main(String[] args) {
         /* multiplying matrices */
 	
-		Quaternionf q1 = new Quaternionf(15, 10, 10);
-		Quaternionf q2 = new Quaternionf(0, 5, 0);
+		Quaternionf q1 = new Quaternionf(60, 45, 30);
+		Quaternionf q2 = new Quaternionf();
+		q2.setEulerAngleSequence(1, 2, 3);
+		q2.setEulerAngles(60, 45, 30);
+
+		System.out.println("q1 ="+q1.toString());
+		System.out.println("q2 ="+q2.toString());
+
+//		Quaternionf qr = q1.multiplyMake(q2.inverse());
 		
-		Quaternionf qr = q1.multiplyMake(q2.inverse());
+//		Vector3f euler = qr.getEuler();
 		
-		Vector3f euler = qr.getEuler();
-		
-		System.out.println("Euler: a="+euler.x() + " b=" + euler.y() + " c=" + euler.z());
+//		System.out.println("Euler: a="+euler.x() + " b=" + euler.y() + " c=" + euler.z());
 
 	}
 
