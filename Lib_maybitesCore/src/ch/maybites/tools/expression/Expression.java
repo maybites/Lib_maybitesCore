@@ -917,6 +917,10 @@ public class Expression {
 				stack.push(rt.localVars.get(token));
 			} else if (staticVars.containsKey(token)) {
 				stack.push(staticVars.get(token));
+			} else if (token.startsWith("$")) { // its a variable that can be not set
+				MutableVariable newvar = new MutableVariable(0);
+				rt.setGlobalVariable(token, newvar);
+				stack.add(newvar);
 			} else if (functions.containsKey(token.toUpperCase(Locale.ROOT))) {
 				Function f = functions.get(token.toUpperCase(Locale.ROOT));
 				ArrayList<MutableVariable> p = new ArrayList<MutableVariable>(
@@ -937,12 +941,7 @@ public class Expression {
 			} else if ("(".equals(token)) {
 				stack.push(PARAMS_START);
 			} else {
-				MutableVariable newvar = new MutableVariable(token);
-				if(newvar.isNumber)
-					stack.push(newvar);
-				else 
-					stack.push(MutableVariable.ZERO);
-					
+				stack.push(new MutableVariable(token));		
 			}
 		}
 		return stack.pop();
