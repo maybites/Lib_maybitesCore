@@ -36,6 +36,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Stack;
 
+import ch.maybites.tools.expression.RunTimeEnvironment.Function;
+import ch.maybites.tools.expression.RunTimeEnvironment.Operator;
+
 /**
  * <h1>EvalEx - Java Expression Evaluator</h1>
  * 
@@ -354,11 +357,6 @@ import java.util.Stack;
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
  */
 public class Expression {
-	/**
-	 * Definition of PI as a constant, can be used in expressions as variable.
-	 */
-	public static final MutableVariable PI = new MutableVariable(
-			3.1415926535897932384626433832795028841971693993751058209749445923078164062862089986280348253421170679);
 
 	/**
 	 * The original infix expression.
@@ -371,19 +369,10 @@ public class Expression {
 	private List<String> rpn = null;
 
 	/**
-	 * All defined operators with name and implementation.
+	 * The MutableVariable representation of the left parenthesis, 
+	 * used for parsing varying numbers of function parameters.
 	 */
-	private Map<String, Operator> operators = new HashMap<String, Expression.Operator>();
-
-	/**
-	 * All defined functions with name and implementation.
-	 */
-	private Map<String, Function> functions = new HashMap<String, Expression.Function>();
-
-	/**
-	 * All defined variables with name and value.
-	 */
-	protected Map<String, MutableVariable> staticVars = new HashMap<String, MutableVariable>();
+	private static final ExpressionVar PARAMS_START = new ExpressionVar(0);
 
 	/**
 	 * What character to use for decimal separators.
@@ -396,12 +385,6 @@ public class Expression {
 	private static final char minusSign = '-';
 
 	/**
-	 * The MutableVariable representation of the left parenthesis, 
-	 * used for parsing varying numbers of function parameters.
-	 */
-	private static final MutableVariable PARAMS_START = new MutableVariable(0);
-
-	/**
 	 * Creates a new expression instance from an expression string with a given
 	 * default match context.
 	 * 
@@ -411,332 +394,8 @@ public class Expression {
 	 * @param defaultMathContext
 	 *            The {@link MathContext} to use by default.
 	 */
-	public Expression(String expression) {
+	public Expression(String expression) throws ExpressionException {
 		this.expression = expression;
-		addOperator(new Operator("+", 20, true) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.add(v2);
-			}
-		});
-		addOperator(new Operator("-", 20, true) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.subtract(v2);
-			}
-		});
-		addOperator(new Operator("*", 30, true) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.multiply(v2);
-			}
-		});
-		addOperator(new Operator("/", 30, true) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.divide(v2);
-			}
-		});
-		addOperator(new Operator("%", 30, true) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.remainder(v2);
-			}
-		});
-		addOperator(new Operator("^", 40, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				/*- 
-				 * Thanks to Gene Marin:
-				 * http://stackoverflow.com/questions/3579779/how-to-do-a-fractional-power-on-MutableVariable-in-java
-				 */
-				int signOf2 = v2.signum();
-				double dn1 = v1.doubleValue();
-				v2 = v2.multiply(signOf2); // n2 is now positive
-				MutableVariable remainderOf2 = v2.remainder(MutableVariable.ONE);
-				MutableVariable n2IntPart = v2.subtract(remainderOf2);
-				MutableVariable intPow = v1.pow(n2IntPart.intValueExact());
-				MutableVariable doublePow = new MutableVariable(Math.pow(dn1,
-						remainderOf2.doubleValue()));
-
-				MutableVariable result = intPow.multiply(doublePow);
-				if (signOf2 == -1) {
-					result = MutableVariable.ONE.divide(result);
-				}
-				return result;
-			}
-		});
-		addOperator(new Operator("&&", 4, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				boolean b1 = !v1.equals(MutableVariable.ZERO);
-				boolean b2 = !v2.equals(MutableVariable.ZERO);
-				return b1 && b2 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator("||", 2, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				boolean b1 = !v1.equals(MutableVariable.ZERO);
-				boolean b2 = !v2.equals(MutableVariable.ZERO);
-				return b1 || b2 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator(">", 10, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) == 1 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator(">=", 10, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) >= 0 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator("<", 10, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) == -1 ? MutableVariable.ONE
-						: MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator("<=", 10, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) <= 0 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addOperator(new Operator("=", 7, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) == 0 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-		addOperator(new Operator("==", 7, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return operators.get("=").eval(v1, v2);
-			}
-		});
-
-		addOperator(new Operator("!=", 7, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return v1.compareTo(v2) != 0 ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-		addOperator(new Operator("<>", 7, false) {
-			@Override
-			public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
-				return operators.get("!=").eval(v1, v2);
-			}
-		});
-
-		addFunction(new Function("NOT", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				boolean zero = parameters.get(0).compareTo(MutableVariable.ZERO) == 0;
-				return zero ? MutableVariable.ONE : MutableVariable.ZERO;
-			}
-		});
-
-		addFunction(new Function("IF", 3) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				boolean isTrue = !parameters.get(0).equals(MutableVariable.ZERO);
-				return isTrue ? parameters.get(1) : parameters.get(2);
-			}
-		});
-
-		addFunction(new Function("RANDOM", 0) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.random();
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("SIN", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.sin(Math.toRadians(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("COS", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.cos(Math.toRadians(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("TAN", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.tan(Math.toRadians(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("ASIN", 1) { // added by av
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.toDegrees(Math.asin(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("ACOS", 1) { // added by av
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.toDegrees(Math.acos(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("ATAN", 1) { // added by av
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.toDegrees(Math.atan(parameters.get(0)
-						.doubleValue()));
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("SINH", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.sinh(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("COSH", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.cosh(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("TANH", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.tanh(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("RAD", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.toRadians(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("DEG", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.toDegrees(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("MAX", -1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				if (parameters.size() == 0) {
-					throw new ExpressionException("MAX requires at least one parameter");
-				}
-				MutableVariable max = null;
-				for (MutableVariable parameter : parameters) {
-					if (max == null || parameter.compareTo(max) > 0) {
-						max = parameter;
-					}
-				}
-				return max;
-			}
-		});
-		addFunction(new Function("MIN", -1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				if (parameters.size() == 0) {
-					throw new ExpressionException("MIN requires at least one parameter");
-				}
-				MutableVariable min = null;
-				for (MutableVariable parameter : parameters) {
-					if (min == null || parameter.compareTo(min) < 0) {
-						min = parameter;
-					}
-				}
-				return min;
-			}
-		});
-		addFunction(new Function("ABS", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				return parameters.get(0).abs();
-			}
-		});
-		addFunction(new Function("LOG", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.log(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("LOG10", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				double d = Math.log10(parameters.get(0).doubleValue());
-				return new MutableVariable(d);
-			}
-		});
-		addFunction(new Function("ROUND", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				MutableVariable toRound = parameters.get(0);
-				return toRound.round();
-			}
-		});
-		addFunction(new Function("FLOOR", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				MutableVariable toRound = parameters.get(0);
-				return toRound.floor();
-			}
-		});
-		addFunction(new Function("CEILING", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				MutableVariable toRound = parameters.get(0);
-				return toRound.ceil();
-			}
-		});
-		addFunction(new Function("SQRT", 1) {
-			@Override
-			public MutableVariable eval(List<MutableVariable> parameters) {
-				MutableVariable x = parameters.get(0);
-				if (x.compareTo(MutableVariable.ZERO) == 0) {
-					return new MutableVariable(0);
-				}
-				if (x.signum() < 0) {
-					throw new ExpressionException(
-							"Argument to SQRT() function must not be negative");
-				}
-
-				return x.sqrt();
-			}
-		});
-
-		setStaticVariable("PI", PI);
-		setStaticVariable("TRUE", MutableVariable.ONE);
-		setStaticVariable("FALSE", MutableVariable.ZERO);
-
-		getRPN();
 	}
 
 	/**
@@ -758,15 +417,6 @@ public class Expression {
 		}
 		return true;
 	}
-	
-	/**
-	 * Creates a RunTimeEnvironment and returns the instance. This Environment is not stored 
-	 * inside a instance of an Expression
-	 * @return
-	 */
-	public static RunTimeEnvironment createRuntimeEnv(){
-		return new RunTimeEnvironment();
-	}
 
 	/**
 	 * Implementation of the <i>Shunting Yard</i> algorithm to transform an
@@ -776,30 +426,34 @@ public class Expression {
 	 *            The input expression in infx.
 	 * @return A RPN representation of the expression, with each token as a list
 	 *         member.
+	 * @throws ExpressionException 
 	 */
-	private List<String> shuntingYard(String expression) {
+	private List<String> shuntingYard(RunTimeEnvironment rt) throws ExpressionException {
 		List<String> outputQueue = new ArrayList<String>();
 		Stack<String> stack = new Stack<String>();
 
-		boolean insideString = false;
+		int insideString = 0;
 		
 		Tokenizer tokenizer = new Tokenizer(expression);
 
 		String lastFunction = null;
 		String previousToken = null;
 		while (tokenizer.hasNext()) {
-			String token = tokenizer.next();
+			String token = tokenizer.next(rt);
 			if (isNumber(token)) {
 				outputQueue.add(token);
-			} else if (staticVars.containsKey(token)) {
+			} else if (rt.staticVars.containsKey(token)) {
 				outputQueue.add(token);
 			} else if (token.startsWith("$")) { // its a variable that can be not set
 				outputQueue.add(token);
-			} else if (functions.containsKey(token.toUpperCase(Locale.ROOT))) {
+			} else if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
 				stack.push(token);
 				lastFunction = token;
-			} else if (Character.isLetter(token.charAt(0))) {
+			//} else if (Character.isLetter(token.charAt(0))) {
+			//	stack.push(token);
+			} else if (insideString == 1) {
 				stack.push(token);
+				insideString = 2;
 			} else if (",".equals(token)) {
 				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
 					outputQueue.add(stack.pop());
@@ -808,13 +462,13 @@ public class Expression {
 					throw new ExpressionException("Parse error for function '"
 							+ lastFunction + "' inside expr: \"" + expression + "\"");
 				}
-			} else if (operators.containsKey(token)) {
-				Operator o1 = operators.get(token);
+			} else if (rt.operators.containsKey(token)) {
+				Operator o1 = rt.operators.get(token);
 				String token2 = stack.isEmpty() ? null : stack.peek();
-				while (operators.containsKey(token2)
-						&& ((o1.isLeftAssoc() && o1.getPrecedence() <= operators
+				while (rt.operators.containsKey(token2)
+						&& ((o1.isLeftAssoc() && o1.getPrecedence() <= rt.operators
 								.get(token2).getPrecedence()) || (o1
-								.getPrecedence() < operators.get(token2)
+								.getPrecedence() < rt.operators.get(token2)
 								.getPrecedence()))) {
 					outputQueue.add(stack.pop());
 					token2 = stack.isEmpty() ? null : stack.peek();
@@ -829,7 +483,7 @@ public class Expression {
 					}
 					// if the ( is preceded by a valid function, then it
 					// denotes the start of a parameter list
-					if (functions.containsKey(previousToken.toUpperCase(Locale.ROOT))) {
+					if (rt.functions.containsKey(previousToken.toUpperCase(Locale.ROOT))) {
 						outputQueue.add(token);
 					}
 				}
@@ -844,22 +498,25 @@ public class Expression {
 				}
 				stack.pop();
 				if (!stack.isEmpty()
-						&& functions.containsKey(stack.peek().toUpperCase(
+						&& rt.functions.containsKey(stack.peek().toUpperCase(
 								Locale.ROOT))) {
 					outputQueue.add(stack.pop());
 				}
 			} else if ("'".equals(token)) {
-				insideString = !insideString;
-				if(insideString){
+				if(insideString == 0)
+					insideString = 1;
+				if(insideString == 1){
+					// it is a string opener
 					if (previousToken != null) {
-						if (isNumber(previousToken)) {
+						if (!rt.operators.containsKey(previousToken)) {
 							throw new ExpressionException(
 									"Missing operator at character position "
 											+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
 						}
 					}
 					stack.push(token);
-				} else {
+				} else if(insideString == 2){
+					// it is a string closer
 					while (!stack.isEmpty() && !"'".equals(stack.peek())) {
 						outputQueue.add(stack.pop());
 					}
@@ -871,7 +528,7 @@ public class Expression {
 					if (!stack.isEmpty()){
 						outputQueue.add(stack.pop());
 					}
-					
+					insideString = 0;
 				}
 			}
 			previousToken = token;
@@ -886,7 +543,7 @@ public class Expression {
 				throw new ExpressionException(
 						"Mismatched string - Missing text delimiter >'< inside expr: \"" + expression + "\"");
 			}
-			if (!operators.containsKey(element)) {
+			if (!rt.operators.containsKey(element)) {
 				throw new ExpressionException(
 						"Unknown operator or function: >"
 								+ element + "< inside expr: \"" + expression + "\"");
@@ -897,117 +554,13 @@ public class Expression {
 	}
 
 	/**
-	 * Evaluates the expression.
-	 * 
-	 * @return The result of the expression.
-	 */
-	public MutableVariable eval(RunTimeEnvironment rt) throws ExpressionException {
-
-		Stack<MutableVariable> stack = new Stack<MutableVariable>();
-
-		List<String> _rpn = getRPN();
-		for (String token : getRPN()) {
-			if (operators.containsKey(token)) {
-				MutableVariable v1 = stack.pop();
-				MutableVariable v2 = stack.pop();
-				stack.push(operators.get(token).eval(v2, v1));
-			} else if (rt.globalVars.containsKey(token)) {
-				stack.push(rt.globalVars.get(token));
-			} else if (rt.localVars.containsKey(token)) {
-				stack.push(rt.localVars.get(token));
-			} else if (staticVars.containsKey(token)) {
-				stack.push(staticVars.get(token));
-			} else if (token.startsWith("$")) { // its a variable that can be not set
-				MutableVariable newvar = new MutableVariable(0);
-				rt.setGlobalVariable(token, newvar);
-				stack.add(newvar);
-			} else if (functions.containsKey(token.toUpperCase(Locale.ROOT))) {
-				Function f = functions.get(token.toUpperCase(Locale.ROOT));
-				ArrayList<MutableVariable> p = new ArrayList<MutableVariable>(
-						!f.numParamsVaries() ? f.getNumParams() : 0);
-				// pop parameters off the stack until we hit the start of 
-				// this function's parameter list
-				while (!stack.isEmpty() && stack.peek() != PARAMS_START) {
-					p.add(0, stack.pop());
-				}
-				if (stack.peek() == PARAMS_START) {
-					stack.pop();
-				}
-				if (!f.numParamsVaries() && p.size() != f.getNumParams()) {
-					throw new ExpressionException("Function " + token + " expected " + f.getNumParams() + " parameters, got " + p.size());
-				}
-				MutableVariable fResult = f.eval(p);
-				stack.push(fResult);
-			} else if ("(".equals(token)) {
-				stack.push(PARAMS_START);
-			} else {
-				stack.push(new MutableVariable(token));		
-			}
-		}
-		return stack.pop();
-	}
-
-	/**
-	 * Sets a static variable value.
-	 * 
-	 * @param variable
-	 *            The variable name.
-	 * @param value
-	 *            The variable value.
-	 */
-	private void setStaticVariable(String variable, MutableVariable value) {
-		if(staticVars.containsKey(value))
-			staticVars.get(value).set(value);
-		else
-			staticVars.put(variable, value);
-	}
-
-	/**
-	 * Adds an operator to the list of supported operators.
-	 * 
-	 * @param operator
-	 *            The operator to add.
-	 * @return The previous operator with that name, or <code>null</code> if
-	 *         there was none.
-	 */
-	protected Operator addOperator(Operator operator) {
-		return operators.put(operator.getOper(), operator);
-	}
-
-	/**
-	 * Adds a function to the list of supported functions
-	 * 
-	 * @param function
-	 *            The function to add.
-	 * @return The previous operator with that name, or <code>null</code> if
-	 *         there was none.
-	 */
-	protected Function addFunction(Function function) {
-		return functions.put(function.getName(), function);
-	}
-
-	/**
-	 * Cached access to the RPN notation of this expression, ensures only one
-	 * calculation of the RPN per expression instance. If no cached instance
-	 * exists, a new one will be created and put to the cache.
-	 * 
-	 * @return The cached RPN instance.
-	 */
-	private List<String> getRPN() {
-		if (rpn == null) {
-			rpn = shuntingYard(this.expression);
-			validate(rpn);
-		}
-		return rpn;
-	}
-
-	/**
 	 * Check that the expression have enough numbers and variables to fit the 
 	 * requirements of the operators and functions, also check 
 	 * for only 1 result stored at the end of the evaluation.  
+	 * @throws ExpressionException 
 	 *
 	 */
-	private void validate(List<String> rpn) {
+	private void validate(List<String> rpn, RunTimeEnvironment rt) throws ExpressionException {
 		/*- 
 		* Thanks to Norman Ramsey:
 		* http://http://stackoverflow.com/questions/789847/postfix-notation-validation
@@ -1026,14 +579,14 @@ public class Expression {
 				// start a new parameter count
 				params.push(0);
 			} else if (!params.isEmpty()) {
-				if (functions.containsKey(token.toUpperCase(Locale.ROOT))) {
+				if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
 					// remove the parameters and the ( from the counter
 					counter -= params.pop() + 1;
 				} else {
 					// increment the current function's param count
 					params.set(params.size() - 1, params.peek() + 1);
 				}
-			} else if (operators.containsKey(token)) {
+			} else if (rt.operators.containsKey(token)) {
 				//we only have binary operators
 				counter -= 2;
 			}
@@ -1050,18 +603,85 @@ public class Expression {
 		}
 	}
 
+
+	/**
+	 * Parses the Expression with the provided RunTimeEnvironment and
+	 * returns an ExpressionVar that contains an ExpressionTree.
+	 * In order to get the result of the Expression, you need to 
+	 * use the eval() method of the returned Object.
+	 * @param rt
+	 * @return a ExpressionVar that contains an ExpressionTree.
+	 * @throws ExpressionException
+	 */
+	public ExpressionVar parse(RunTimeEnvironment rt) throws ExpressionException {
+		rpn = shuntingYard(rt);
+		validate(rpn, rt);
+
+		Stack<ExpressionVar> stack = new Stack<ExpressionVar>();
+
+		for (String token : rpn) {
+			if (rt.operators.containsKey(token)) {
+				ArrayList<ExpressionVar> p = new ArrayList<ExpressionVar>();
+				ExpressionVar v1 = stack.pop();
+				ExpressionVar v2 = stack.pop();
+				p.add(v2);
+				p.add(v1);
+				stack.push(new ExpressionVar(rt.operators.get(token), p));
+			} else if (rt.privateVars.containsKey(token)) {
+				stack.push(rt.privateVars.get(token));
+			} else if (rt.protectedVars.containsKey(token)) {
+				stack.push(rt.protectedVars.get(token));
+			} else if (rt.publicVars.containsKey(token)) {
+				stack.push(rt.publicVars.get(token));
+			} else if (rt.staticVars.containsKey(token)) {
+				stack.push(rt.staticVars.get(token));
+			} else if (token.startsWith("$")) { // its a variable that can be not set
+				ExpressionVar newvar = new ExpressionVar(0);
+				rt.setPublicVariable(token, newvar);
+				stack.add(newvar);
+			} else if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
+				Function f = rt.functions.get(token.toUpperCase(Locale.ROOT));
+				ArrayList<ExpressionVar> p = new ArrayList<ExpressionVar>(
+						!f.numParamsVaries() ? f.getNumParams() : 0);
+				// pop parameters off the stack until we hit the start of 
+				// this function's parameter list
+				while (!stack.isEmpty() && stack.peek() != PARAMS_START) {
+					p.add(0, stack.pop());
+				}
+				if (stack.peek() == PARAMS_START) {
+					stack.pop();
+				}
+				if (!f.numParamsVaries() && p.size() != f.getNumParams()) {
+					throw new ExpressionException("Function " + token + " expected " + f.getNumParams() + " parameters, got " + p.size());
+				}
+				stack.push(new ExpressionVar(f, p));
+			} else if ("(".equals(token)) {
+				stack.push(PARAMS_START);
+			} else {
+				stack.push(new ExpressionVar(token));		
+			}
+		}
+		return stack.pop();
+	}
+
 	/**
 	 * Get a string representation of the RPN (Reverse Polish Notation) for this
 	 * expression.
 	 * 
 	 * @return A string with the RPN representation for this expression.
+	 * @throws ExpressionException if the expression has not been parsed
+	 *  with a RunTimeEnvironment beforehand
 	 */
-	public String toRPN() {
+	public String toRPN() throws ExpressionException {
 		StringBuilder result = new StringBuilder();
-		for (String st : getRPN()) {
-			if (result.length() != 0)
-				result.append(" ");
-			result.append(st);
+		if(rpn != null){
+			for (String st : rpn) {
+				if (result.length() != 0)
+					result.append(" ");
+				result.append(st);
+			}
+		} else {
+			throw new ExpressionException("Expression not parsed yet: " + expression);
 		}
 		return result.toString();
 	}
@@ -1069,7 +689,7 @@ public class Expression {
 	/**
 	 * The expression evaluators exception class.
 	 */
-	public static class ExpressionException extends RuntimeException {
+	public static class ExpressionException extends Exception {
 		private static final long serialVersionUID = 1118142866870779047L;
 
 		public ExpressionException(String message) {
@@ -1078,123 +698,10 @@ public class Expression {
 	}
 
 	/**
-	 * Abstract definition of a supported expression function. A function is
-	 * defined by a name, the number of parameters and the actual processing
-	 * implementation.
-	 */
-	public abstract class Function {
-		/**
-		 * Name of this function.
-		 */
-		private String name;
-		/**
-		 * Number of parameters expected for this function. 
-		 * <code>-1</code> denotes a variable number of parameters.
-		 */
-		private int numParams;
-
-		/**
-		 * Creates a new function with given name and parameter count.
-		 * 
-		 * @param name
-		 *            The name of the function.
-		 * @param numParams
-		 *            The number of parameters for this function.
-		 *            <code>-1</code> denotes a variable number of parameters.
-		 */
-		public Function(String name, int numParams) {
-			this.name = name.toUpperCase(Locale.ROOT);
-			this.numParams = numParams;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public int getNumParams() {
-			return numParams;
-		}
-
-		public boolean numParamsVaries() {
-			return numParams < 0;
-		}
-
-		/**
-		 * Implementation for this function.
-		 * 
-		 * @param parameters
-		 *            Parameters will be passed by the expression evaluator as a
-		 *            {@link List} of {@link MutableVariable} values.
-		 * @return The function must return a new {@link MutableVariable} value as a
-		 *         computing result.
-		 */
-		public abstract MutableVariable eval(List<MutableVariable> parameters);
-	}
-
-	/**
-	 * Abstract definition of a supported operator. An operator is defined by
-	 * its name (pattern), precedence and if it is left- or right associative.
-	 */
-	public abstract class Operator {
-		/**
-		 * This operators name (pattern).
-		 */
-		private String oper;
-		/**
-		 * Operators precedence.
-		 */
-		private int precedence;
-		/**
-		 * Operator is left associative.
-		 */
-		private boolean leftAssoc;
-
-		/**
-		 * Creates a new operator.
-		 * 
-		 * @param oper
-		 *            The operator name (pattern).
-		 * @param precedence
-		 *            The operators precedence.
-		 * @param leftAssoc
-		 *            <code>true</code> if the operator is left associative,
-		 *            else <code>false</code>.
-		 */
-		public Operator(String oper, int precedence, boolean leftAssoc) {
-			this.oper = oper;
-			this.precedence = precedence;
-			this.leftAssoc = leftAssoc;
-		}
-
-		public String getOper() {
-			return oper;
-		}
-
-		public int getPrecedence() {
-			return precedence;
-		}
-
-		public boolean isLeftAssoc() {
-			return leftAssoc;
-		}
-
-		/**
-		 * Implementation for this operator.
-		 * 
-		 * @param v1
-		 *            Operand 1.
-		 * @param v2
-		 *            Operand 2.
-		 * @return The result of the operation.
-		 */
-		public abstract MutableVariable eval(MutableVariable v1, MutableVariable v2);
-	}
-
-	/**
 	 * Expression tokenizer that allows to iterate over a {@link String}
 	 * expression token by token. Blank characters will be skipped.
 	 */
-	private class Tokenizer implements Iterator<String> {
+	private class Tokenizer {
 
 		/**
 		 * Actual position in expression string.
@@ -1222,8 +729,7 @@ public class Expression {
 			this.input = input.trim();
 		}
 
-		@Override
-		public boolean hasNext() {
+		public boolean hasNext(){
 			return (pos < input.length());
 		}
 
@@ -1240,8 +746,7 @@ public class Expression {
 			}
 		}
 
-		@Override
-		public String next() {
+		public String next(RunTimeEnvironment rt) throws ExpressionException{
 			StringBuilder token = new StringBuilder();
 			if (pos >= input.length()) {
 				return previousToken = null;
@@ -1274,11 +779,11 @@ public class Expression {
 			} else if (ch == minusSign
 					&& Character.isDigit(peekNextChar())
 					&& ("(".equals(previousToken) || ",".equals(previousToken)
-							|| previousToken == null || operators
+							|| previousToken == null || rt.operators
 								.containsKey(previousToken))) {
 				token.append(minusSign);
 				pos++;
-				token.append(next());
+				token.append(next(rt));
 			} else if (Character.isLetter(ch) || (ch == '_')  || (ch == '$')) {
 				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '$'))
 						&& (pos < input.length())) {
@@ -1305,17 +810,12 @@ public class Expression {
 						break;
 					}
 				}
-				if (!operators.containsKey(token.toString())) {
+				if (!rt.operators.containsKey(token.toString())) {
 					throw new ExpressionException("Unknown operator '" + token
 							+ "' at position " + (pos - token.length() + 1));
 				}
 			}
 			return previousToken = token.toString();
-		}
-
-		@Override
-		public void remove() {
-			throw new ExpressionException("remove() not supported");
 		}
 
 		/**

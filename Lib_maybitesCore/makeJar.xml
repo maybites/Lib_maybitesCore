@@ -15,7 +15,7 @@
 	<path id="library-classpath">
 	</path>
 	
-	<property name="jar.export1.dir" value="${maybites.beamstreamer.export.dir}"/>
+	<property name="jar.export1.dir" value="${maybites.sparck.export.dir}"/>
 	
 	<!-- 
  	 		==================================================================
