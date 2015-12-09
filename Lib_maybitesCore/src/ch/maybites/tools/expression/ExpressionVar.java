@@ -136,6 +136,7 @@ public class ExpressionVar {
 	
 	/**
 	 * Evaluates the Expression Tree (if there is one).
+	 * The result is stored inside this instance.
 	 * If this instance is returned by the parse() function of 
 	 * Expression, this function should be called before you
 	 * attempt do get its value.

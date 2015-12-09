@@ -191,16 +191,14 @@ public class RunTimeEnvironment {
 		addFunction(new Function("IF", 3) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				boolean isTrue = !parameters.get(0).equals(ExpressionVar.ZERO);
-				return isTrue ? parameters.get(1) : parameters.get(2);
+				return (parameters.get(0).getNumberValue() == 1) ? parameters.get(1) : parameters.get(2);
 			}
 		});
 
 		addFunction(new Function("RANDOM", 0) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.random();
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.random());
 			}
 		});
 		addFunction(new Function("SIN", 1) {
@@ -432,7 +430,8 @@ public class RunTimeEnvironment {
 	
 
 	/**
-	 * Sets a public variable value.
+	 * Sets a public variable value. if no variable of this name has been set, rt will use
+	 * the passed instance as the variable container.
 	 * 
 	 * @param variable
 	 *            The variable name.
