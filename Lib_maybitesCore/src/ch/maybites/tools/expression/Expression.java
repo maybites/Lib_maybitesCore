@@ -507,27 +507,28 @@ public class Expression {
 					insideString = 1;
 				if(insideString == 1){
 					// it is a string opener
-					if (previousToken != null) {
+					if (previousToken != null && !previousToken.equals("(")) {
 						if (!rt.operators.containsKey(previousToken)) {
 							throw new ExpressionException(
 									"Missing operator at character position "
 											+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
 						}
 					}
+					// add the opening ' to the stack
 					stack.push(token);
 				} else if(insideString == 2){
 					// it is a string closer
 					while (!stack.isEmpty() && !"'".equals(stack.peek())) {
+						// take the string from the stack and put it into the outputQue
 						outputQueue.add(stack.pop());
 					}
+					// there should be the opening ' left 
 					if (stack.isEmpty()) {
 						throw new ExpressionException(
 								"Mismatched parentheses - missing closing >'< inside expr: \"" + expression + "\"" );
 					}
+					// remove opening ' from the stack
 					stack.pop();
-					if (!stack.isEmpty()){
-						outputQueue.add(stack.pop());
-					}
 					insideString = 0;
 				}
 			}

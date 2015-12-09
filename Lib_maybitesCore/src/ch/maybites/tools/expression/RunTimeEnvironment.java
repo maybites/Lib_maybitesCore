@@ -80,31 +80,31 @@ public class RunTimeEnvironment {
 		addOperator(new Operator("-", 20, true) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).subtract(parameters.get(1));
+				return new ExpressionVar(parameters.get(0).getNumberValue() - parameters.get(1).getNumberValue());
 			}
 		});
 		addOperator(new Operator("*", 30, true) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).multiply(parameters.get(1));
+				return new ExpressionVar(parameters.get(0).getNumberValue() * parameters.get(1).getNumberValue());
 			}
 		});
 		addOperator(new Operator("/", 30, true) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).divide(parameters.get(1));
+				return new ExpressionVar(parameters.get(0).getNumberValue() / parameters.get(1).getNumberValue());
 			}
 		});
 		addOperator(new Operator("%", 30, true) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).remainder(parameters.get(1));
+				return new ExpressionVar(parameters.get(0).getNumberValue() % parameters.get(1).getNumberValue());
 			}
 		});
 		addOperator(new Operator("^", 40, false) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).pow(parameters.get(1));
+				return new ExpressionVar(Math.pow(parameters.get(0).getNumberValue(), parameters.get(1).getNumberValue()));
 			}
 		});
 		addOperator(new Operator("&&", 4, false) {
@@ -206,84 +206,67 @@ public class RunTimeEnvironment {
 		addFunction(new Function("SIN", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.sin(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.sin(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("COS", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.cos(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.cos(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("TAN", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.tan(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.tan(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("ASIN", 1) { // added by av
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.asin(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.asin(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("ACOS", 1) { // added by av
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.acos(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.acos(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("ATAN", 1) { // added by av
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.atan(parameters.get(0)
-						.doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.atan(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("SINH", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.sinh(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.sinh(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("COSH", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.cosh(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.cosh(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("TANH", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.tanh(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.tanh(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("RAD", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.toRadians(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.toRadians(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("DEG", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.toDegrees(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.toDegrees(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("MAX", -1) {
@@ -319,57 +302,51 @@ public class RunTimeEnvironment {
 		addFunction(new Function("ABS", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).abs();
+				return new ExpressionVar(Math.abs(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("LOG", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.log(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.log(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("LOG10", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				double d = Math.log10(parameters.get(0).doubleValue());
-				return new ExpressionVar(d);
+				return new ExpressionVar(Math.log10(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("ROUND", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				ExpressionVar toRound = parameters.get(0);
-				return toRound.round();
+				return new ExpressionVar(Math.round(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("FLOOR", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				ExpressionVar toRound = parameters.get(0);
-				return toRound.floor();
+				return  new ExpressionVar(Math.floor(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("CEILING", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				ExpressionVar toRound = parameters.get(0);
-				return toRound.ceil();
+				return new ExpressionVar(Math.ceil(parameters.get(0).getNumberValue()));
 			}
 		});
 		addFunction(new Function("SQRT", 1) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException {
-				ExpressionVar x = parameters.get(0);
-				if (x.compareTo(ExpressionVar.ZERO) == 0) {
+				if (parameters.get(0).compareTo(ExpressionVar.ZERO) == 0) {
 					return new ExpressionVar(0);
 				}
-				if (x.signum() < 0) {
+				if (Math.signum(parameters.get(0).getNumberValue()) < 0) {
 					throw new ExpressionException(
 							"Argument to SQRT() function must not be negative");
 				}
 
-				return x.sqrt();
+				return new ExpressionVar(Math.sqrt(parameters.get(0).getNumberValue()));
 			}
 		});
 
