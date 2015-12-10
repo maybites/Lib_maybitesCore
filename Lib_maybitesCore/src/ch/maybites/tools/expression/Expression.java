@@ -292,54 +292,7 @@ import ch.maybites.tools.expression.RunTimeEnvironment.Operator;
  * </tr>
  * </table>
  * 
- * <h2>Add Custom Operators</h2>
- * 
- * Custom operators can be added easily, simply create an instance of
- * `Expression.Operator` and add it to the expression. Parameters are the
- * operator string, its precedence and if it is left associative. The operators
- * `eval()` method will be called with the MutableVariable values of the operands.
- * All existing operators can also be overridden. <br>
- * For example, add an operator `x >> n`, that moves the decimal point of _x_
- * _n_ digits to the right:
- * 
- * <pre>
- * Expression e = new Expression("2.1234 >> 2");
- * 
- * e.addOperator(e.new Operator(">>", 30, true) {
- *     {@literal @}Override
- *     public MutableVariable eval(MutableVariable v1, MutableVariable v2) {
- *         return v1.movePointRight(v2.toBigInteger().intValue());
- *     }
- * });
- * 
- * e.eval(); // returns 212.34
- * </pre>
- * 
- * <br>
- * <h2>Add Custom Functions</h2>
- * 
- * Adding custom functions is as easy as adding custom operators. Create an
- * instance of `Expression.Function`and add it to the expression. Parameters are
- * the function name and the count of required parameters. The functions
- * `eval()` method will be called with a list of the MutableVariable parameters. All
- * existing functions can also be overridden. <br>
- * A <code>-1</code> as the number of parameters denotes a variable number of arguments.<br>
- * For example, add a function `average(a,b,c)`, that will calculate the average
- * value of a, b and c: <br>
- * 
- * <pre>
- * Expression e = new Expression("2 * average(12,4,8)");
- * 
- * e.addFunction(e.new Function("average", 3) {
- *     {@literal @}Override
- *     public MutableVariable eval(List<MutableVariable> parameters) {
- *         MutableVariable sum = parameters.get(0).add(parameters.get(1)).add(parameters.get(2));
- *         return sum.divide(new MutableVariable(3));
- *     }
- * });
- * 
- * e.eval(); // returns 16
- * </pre>
+
  * 
  * The software is licensed under the MIT Open Source license (see LICENSE
  * file). <br>
@@ -355,6 +308,7 @@ import ch.maybites.tools.expression.RunTimeEnvironment.Operator;
  * </ul>
  * 
  * @author Udo Klimaschewski (http://about.me/udo.klimaschewski)
+ * @author Martin Fröhlich (http://maybites.ch)
  */
 public class Expression {
 
@@ -444,16 +398,11 @@ public class Expression {
 				outputQueue.add(token);
 			} else if (rt.staticVars.containsKey(token)) {
 				outputQueue.add(token);
-			} else if (token.startsWith("$")) { // its a variable that can be not set
-				outputQueue.add(token);
 			} else if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
 				stack.push(token);
 				lastFunction = token;
 			//} else if (Character.isLetter(token.charAt(0))) {
 			//	stack.push(token);
-			} else if (insideString == 1) {
-				stack.push(token);
-				insideString = 2;
 			} else if (",".equals(token)) {
 				while (!stack.isEmpty() && !"(".equals(stack.peek())) {
 					outputQueue.add(stack.pop());
@@ -502,36 +451,20 @@ public class Expression {
 								Locale.ROOT))) {
 					outputQueue.add(stack.pop());
 				}
-			} else if ("'".equals(token)) {
-				if(insideString == 0)
-					insideString = 1;
-				if(insideString == 1){
-					// it is a string opener
-					if (previousToken != null && !previousToken.equals("(")) {
-						if (!rt.operators.containsKey(previousToken)) {
-							throw new ExpressionException(
-									"Missing operator at character position "
-											+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
-						}
-					}
-					// add the opening ' to the stack
-					stack.push(token);
-				} else if(insideString == 2){
-					// it is a string closer
-					while (!stack.isEmpty() && !"'".equals(stack.peek())) {
-						// take the string from the stack and put it into the outputQue
-						outputQueue.add(stack.pop());
-					}
-					// there should be the opening ' left 
-					if (stack.isEmpty()) {
+			} else if (token.startsWith("'") && token.endsWith("'")) {
+				if (previousToken != null && !previousToken.equals("(")) {
+					if (!rt.operators.containsKey(previousToken)) {
 						throw new ExpressionException(
-								"Mismatched parentheses - missing closing >'< inside expr: \"" + expression + "\"" );
+								"Missing operator at character position "
+										+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
 					}
-					// remove opening ' from the stack
-					stack.pop();
-					insideString = 0;
 				}
-			}
+				// take the string from the stack and put it into the outputQue
+				outputQueue.add(token);
+			}	else {
+				// its a variable that can be not set
+				outputQueue.add(token);
+			} 
 			previousToken = token;
 		}
 		while (!stack.isEmpty()) {
@@ -544,12 +477,15 @@ public class Expression {
 				throw new ExpressionException(
 						"Mismatched string - Missing text delimiter >'< inside expr: \"" + expression + "\"");
 			}
-			if (!rt.operators.containsKey(element)) {
+			if(element.startsWith("'") && element.endsWith("'")){
+				outputQueue.add(element);
+			} else if (!rt.operators.containsKey(element)) {
 				throw new ExpressionException(
 						"Unknown operator or function: >"
 								+ element + "< inside expr: \"" + expression + "\"");
+			} else {
+				outputQueue.add(element);
 			}
-			outputQueue.add(element);
 		}
 		return outputQueue;
 	}
@@ -636,10 +572,6 @@ public class Expression {
 				stack.push(rt.publicVars.get(token));
 			} else if (rt.staticVars.containsKey(token)) {
 				stack.push(rt.staticVars.get(token));
-			} else if (token.startsWith("$")) { // its a variable that can be not set
-				ExpressionVar newvar = new ExpressionVar(0);
-				rt.setPublicVariable(token, newvar);
-				stack.add(newvar);
 			} else if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
 				Function f = rt.functions.get(token.toUpperCase(Locale.ROOT));
 				ArrayList<ExpressionVar> p = new ArrayList<ExpressionVar>(
@@ -658,8 +590,17 @@ public class Expression {
 				stack.push(new ExpressionVar(f, p));
 			} else if ("(".equals(token)) {
 				stack.push(PARAMS_START);
+			} else if (token.startsWith("'")) { 
+				// its a string
+				stack.push(new ExpressionVar(token.substring(1, token.length() - 1)));		
+			} else if(isNumber(token)){
+				// its a number
+				stack.add(new ExpressionVar(token));
 			} else {
-				stack.push(new ExpressionVar(token));		
+				// its variable that has not been definied yet.
+				ExpressionVar newvar = new ExpressionVar(0);
+				rt.setPublicVariable(token, newvar);
+				stack.add(newvar);
 			}
 		}
 		return stack.pop();
@@ -718,8 +659,6 @@ public class Expression {
 		 */
 		private String previousToken;
 		
-		private boolean insideString = false;
-
 		/**
 		 * Creates a new tokenizer for an expression.
 		 * 
@@ -753,20 +692,11 @@ public class Expression {
 				return previousToken = null;
 			}
 			char ch = input.charAt(pos);
+			// ignore whitespaces (that are not inside a string)
 			while (Character.isWhitespace(ch) && pos < input.length()) {
 				ch = input.charAt(++pos);
 			}
-			if (insideString && ch != '\'') {		//<-------
-				while (ch != '\''){
-					if(pos < input.length()) {
-						token.append(input.charAt(pos));
-						pos++;
-						ch = (pos == input.length()) ? 0 : input.charAt(pos);
-					} else {
-						throw new ExpressionException("Missing text delimiter ' at position " + (pos - token.length() + 1));
-					}
-				}
-			} else if (Character.isDigit(ch)) {
+			if (Character.isDigit(ch)) {
 				while ((Character.isDigit(ch) || ch == decimalSeparator
                                                 || ch == 'e' || ch == 'E'
                                                 || (ch == minusSign && token.length() > 0 
@@ -774,31 +704,50 @@ public class Expression {
                                                 || (ch == '+' && token.length() > 0 
                                                     && ('e'==token.charAt(token.length()-1) || 'E'==token.charAt(token.length()-1)))
                                                 ) && (pos < input.length())) {
+					// --> it is a number
 					token.append(input.charAt(pos++));
 					ch = pos == input.length() ? 0 : input.charAt(pos);
 				}
-			} else if (ch == minusSign
+			} else if (ch == minusSign 
 					&& Character.isDigit(peekNextChar())
 					&& ("(".equals(previousToken) || ",".equals(previousToken)
 							|| previousToken == null || rt.operators
 								.containsKey(previousToken))) {
+				// --> it is a minus sign
 				token.append(minusSign);
 				pos++;
+				// recursive call
 				token.append(next(rt));
 			} else if (Character.isLetter(ch) || (ch == '_')  || (ch == '$')) {
+				// --> it is a variable or a function
 				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '$'))
 						&& (pos < input.length())) {
 					token.append(input.charAt(pos++));
 					ch = pos == input.length() ? 0 : input.charAt(pos);
 				}
 			} else if (ch == '(' || ch == ')' || ch == ',') {
+				// it is a structural delimiter 
 				token.append(ch);
 				pos++;
-			} else if (ch == '\'') {		//<-------
+			} else if (ch == '\'') {
+				// --> it is a string
 				token.append(ch);
 				pos++;
-				insideString = !insideString;
+				ch = pos == input.length() ? 0 : input.charAt(pos);
+				boolean insideString = true;
+				while (pos < input.length() && insideString) {
+					if(ch == '\'')
+						insideString = false;
+					token.append(input.charAt(pos));
+					pos++;
+					ch = pos == input.length() ? 0 : input.charAt(pos);
+				}
+				if(insideString == true){
+					throw new ExpressionException("Missing String delimiter '" + token
+							+ "' at position " + (pos - token.length() + 1));
+				}
 			} else {
+				// --> it is an operator ( but not a minus sign)
 				while (!Character.isLetter(ch) && !Character.isDigit(ch)
 						&& ch != '_' && !Character.isWhitespace(ch)
 						&& ch != '(' && ch != ')' && ch != ','
