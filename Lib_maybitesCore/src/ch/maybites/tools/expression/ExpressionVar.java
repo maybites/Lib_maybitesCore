@@ -43,6 +43,8 @@ public class ExpressionVar {
 	
 	public boolean isNumber = false;
 	
+	private String expr = null;
+	
 	/**
 	 * Creates an ExpressionVar with the nummeric value of 
 	 * @param value
@@ -59,7 +61,7 @@ public class ExpressionVar {
 	public ExpressionVar(String value){
 		setValue(value);
 	}
-
+	
 	/**
 	 * Creates an ExpressionVar with an Evaluation Tree 
 	 * @param value
@@ -69,6 +71,11 @@ public class ExpressionVar {
 		params = p;
 		this.dValue = 0;
 		isNumber = true;
+	}
+	
+	protected ExpressionVar setExpression(String expr){
+		this.expr = expr;
+		return this;
 	}
 
 	/**
@@ -141,12 +148,17 @@ public class ExpressionVar {
 	 * Expression, this function should be called before you
 	 * attempt do get its value.
 	 * @return this instance
+	 * @throws ExpressionException 
 	 */
 	public ExpressionVar eval() throws ExpressionException{
 		if(operation != null){
-			for(ExpressionVar exp: params)
-				exp.eval();
-			set(operation.eval(params));
+			try {
+				for(ExpressionVar exp: params)
+					exp.eval();
+				set(operation.eval(params));
+			} catch (ExpressionException e) {
+				throw new ExpressionException(e.getMessage() + " for expression: '" + expr + "'");
+			}
 		}
 		return this;
 	}
