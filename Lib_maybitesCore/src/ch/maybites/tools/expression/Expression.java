@@ -353,6 +353,23 @@ public class Expression {
 	}
 
 	/**
+	 * Creates a new expression instance from an expression string with a given
+	 * default match context.
+	 * 
+	 * @param expression
+	 * @param trimStart the characters at the beginning of the expression to be cut away (if they exist)
+	 * @param trimEnd the characters at the end of the expression to be cut away (if they exist)
+	 * @throws ExpressionException
+	 */
+	public Expression(String expression, String trimStart, String trimEnd) throws ExpressionException {
+		if(expression.startsWith(trimStart))
+			expression = expression.substring(trimStart.length());
+		if(expression.endsWith(trimEnd))
+			expression = expression.substring(0, expression.length() - trimEnd.length());
+		this.expression = expression;
+	}
+
+	/**
 	 * Is the string a number?
 	 * 
 	 * @param st
@@ -603,7 +620,7 @@ public class Expression {
 				stack.add(newvar);
 			}
 		}
-		return stack.pop();
+		return stack.pop().setExpression(expression);
 	}
 
 	/**
