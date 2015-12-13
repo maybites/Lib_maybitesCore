@@ -156,14 +156,18 @@ public class RunTimeEnvironment {
 
 		addOperator(new Operator("=", 7, false) {
 			@Override
-			public ExpressionVar eval(List<ExpressionVar> parameters) {
-				return parameters.get(0).compareTo(parameters.get(1)) == 0 ? ExpressionVar.ONE : ExpressionVar.ZERO;
+			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException{
+				if(parameters.size() == 2 && parameters.get(0).isUsedAsVariable){
+					return parameters.get(0).set(parameters.get(1));
+				}
+				throw new ExpressionException("= can only assign to a variable");
 			}
 		});
+
 		addOperator(new Operator("==", 7, false) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException {
-				return operators.get("=").eval(parameters);
+				return parameters.get(0).compareTo(parameters.get(1)) == 0 ? ExpressionVar.ONE : ExpressionVar.ZERO;
 			}
 		});
 
@@ -443,7 +447,7 @@ public class RunTimeEnvironment {
 		if(publicVars.containsKey(variable)){
 			return publicVars.get(variable).set(value);
 		} else {
-			publicVars.put(variable, value);
+			publicVars.put(variable, value.setUsedAsVariable());
 			return value;
 		}
 	}
@@ -461,7 +465,7 @@ public class RunTimeEnvironment {
 		if(publicVars.containsKey(variable))
 			return publicVars.get(variable).setValue(value);
 		else {
-			ExpressionVar v =  new ExpressionVar(value);
+			ExpressionVar v =  new ExpressionVar(value).setUsedAsVariable();
 			publicVars.put(variable, v);
 			return v;
 		}
@@ -480,7 +484,7 @@ public class RunTimeEnvironment {
 		if(publicVars.containsKey(variable))
 			return publicVars.get(variable).setValue(value);
 		else {
-			ExpressionVar v =  new ExpressionVar(value);
+			ExpressionVar v =  new ExpressionVar(value).setUsedAsVariable();
 			publicVars.put(variable, v);
 			return v;
 		}
@@ -499,7 +503,7 @@ public class RunTimeEnvironment {
 		if(protectedVars.containsKey(variable)){
 			return protectedVars.get(variable).set(value);
 		} else {
-			protectedVars.put(variable, value);
+			protectedVars.put(variable, value.setUsedAsVariable());
 			return value;
 		}
 	}
@@ -517,7 +521,7 @@ public class RunTimeEnvironment {
 		if(protectedVars.containsKey(variable)){
 			return protectedVars.get(variable).setValue(value);
 		}else{
-			ExpressionVar v = new ExpressionVar(value);
+			ExpressionVar v = new ExpressionVar(value).setUsedAsVariable();
 			protectedVars.put(variable,v);
 			return v;
 		}
@@ -536,7 +540,7 @@ public class RunTimeEnvironment {
 		if(protectedVars.containsKey(variable)){
 			return protectedVars.get(variable).setValue(value);
 		}else{
-			ExpressionVar v = new ExpressionVar(value);
+			ExpressionVar v = new ExpressionVar(value).setUsedAsVariable();
 			protectedVars.put(variable,v);
 			return v;
 		}
@@ -556,7 +560,7 @@ public class RunTimeEnvironment {
 		if(privateVars.containsKey(variable)){
 			return privateVars.get(variable).set(value);
 		} else {
-			privateVars.put(variable, value);
+			privateVars.put(variable, value.setUsedAsVariable());
 			return value;
 		}
 	}
@@ -574,7 +578,7 @@ public class RunTimeEnvironment {
 		if(privateVars.containsKey(variable)){
 			return privateVars.get(variable).setValue(value);
 		}else{
-			ExpressionVar v = new ExpressionVar(value);
+			ExpressionVar v = new ExpressionVar(value).setUsedAsVariable();
 			privateVars.put(variable,v);
 			return v;
 		}
@@ -593,7 +597,7 @@ public class RunTimeEnvironment {
 		if(privateVars.containsKey(variable)){
 			return privateVars.get(variable).setValue(value);
 		}else{
-			ExpressionVar v = new ExpressionVar(value);
+			ExpressionVar v = new ExpressionVar(value).setUsedAsVariable();
 			privateVars.put(variable,v);
 			return v;
 		}
@@ -611,7 +615,7 @@ public class RunTimeEnvironment {
 		if(staticVars.containsKey(value))
 			staticVars.get(value).set(value);
 		else
-			staticVars.put(variable, value);
+			staticVars.put(variable, value.setUsedAsVariable());
 	}
 
 	protected abstract class Operation {

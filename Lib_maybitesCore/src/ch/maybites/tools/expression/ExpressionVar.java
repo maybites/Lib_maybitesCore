@@ -45,6 +45,8 @@ public class ExpressionVar {
 	
 	private String expr = null;
 	
+	protected boolean isUsedAsVariable = false;
+	
 	/**
 	 * Creates an ExpressionVar with the nummeric value of 
 	 * @param value
@@ -71,6 +73,11 @@ public class ExpressionVar {
 		params = p;
 		this.dValue = 0;
 		isNumber = true;
+	}
+	
+	protected ExpressionVar setUsedAsVariable(){
+		isUsedAsVariable = true;
+		return this;
 	}
 	
 	protected ExpressionVar setExpression(String expr){
@@ -157,7 +164,7 @@ public class ExpressionVar {
 					exp.eval();
 				set(operation.eval(params));
 			} catch (ExpressionException e) {
-				throw new ExpressionException(e.getMessage() + " for expression: '" + expr + "'");
+				throw new ExpressionException(e.getMessage() + "\n" + expr);
 			}
 		}
 		return this;
