@@ -577,12 +577,12 @@ public class Expression {
 				p.add(v2);
 				p.add(v1);
 				stack.push(new ExpressionVar(rt.operators.get(token), p));
-			} else if (rt.privateVars.containsKey(token)) {
-				stack.push(rt.privateVars.get(token));
-			} else if (rt.protectedVars.containsKey(token)) {
-				stack.push(rt.protectedVars.get(token));
-			} else if (rt.publicVars.containsKey(token)) {
-				stack.push(rt.publicVars.get(token));
+			} else if (rt.privateVars.containsKey(removeDomainAssignementPrefix(token))) {
+				stack.push(rt.privateVars.get(removeDomainAssignementPrefix(token)));
+			} else if (rt.protectedVars.containsKey(removeDomainAssignementPrefix(token))) {
+				stack.push(rt.protectedVars.get(removeDomainAssignementPrefix(token)));
+			} else if (rt.publicVars.containsKey(removeDomainAssignementPrefix(token))) {
+				stack.push(rt.publicVars.get(removeDomainAssignementPrefix(token)));
 			} else if (rt.staticVars.containsKey(token)) {
 				stack.push(rt.staticVars.get(token));
 			} else if (rt.functions.containsKey(token.toUpperCase(Locale.ROOT))) {
@@ -612,11 +612,24 @@ public class Expression {
 			} else {
 				// its variable that has not been definied yet.
 				ExpressionVar newvar = new ExpressionVar(0);
-				rt.setPublicVariable(token, newvar);
+				if(token.startsWith("??"))
+					rt.setPrivateVariable(token.substring(2), newvar);
+				else if(token.startsWith("?"))
+					rt.setProtectedVariable(token.substring(1), newvar);
+				else
+					rt.setPublicVariable(token, newvar);					
 				stack.add(newvar);
 			}
 		}
 		return stack.pop().setExpression(expression);
+	}
+	
+	private String removeDomainAssignementPrefix(String var){
+		if(var.startsWith("??") || var.startsWith("!!"))
+			return var.substring(2);
+		else if(var.startsWith("?") || var.startsWith("!"))
+			return var.substring(1);
+		else return var;
 	}
 
 	/**
@@ -731,12 +744,31 @@ public class Expression {
 				pos++;
 				// recursive call
 				token.append(next(rt));
-			} else if (Character.isLetter(ch) || (ch == '_')  || (ch == '$')) {
+			} else if (Character.isLetter(ch) || (ch == '_')  || (ch == '$') || (ch == '?') || (ch == '!')) {
 				// --> it is a variable or a function
-				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '.') || (ch == '$'))
+				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '?')  || (ch == '!') || (ch == '.') || (ch == '$'))
 						&& (pos < input.length())) {
 					token.append(input.charAt(pos++));
 					ch = pos == input.length() ? 0 : input.charAt(pos);
+				}
+				if(token.length() > 1){
+					if(token.charAt(0) == '?'){
+						if(token.length() > 2){
+							if(token.charAt(1) == '?'){
+								if(token.length() > 3){
+									if(token.charAt(2) == '?'){
+										throw new ExpressionException(createError("Invalid Use of domain-assignment. Only '?' or '??' are permitted: '" + token + "'", (pos - token.length() + 1)));
+									}
+								}
+								if(token.length() < 3){
+									throw new ExpressionException(createError("Invalid variable name '" + token.substring(2) + "'", (pos - token.length() + 1)));
+								}
+							}
+						}
+						if(token.length() < 2){
+							throw new ExpressionException(createError("Invalid variable name '" + token.substring(1) + "'", (pos - token.length() + 1)));
+						}
+					}	
 				}
 			} else if (ch == '(' || ch == ')' || ch == ',') {
 				// it is a structural delimiter 
