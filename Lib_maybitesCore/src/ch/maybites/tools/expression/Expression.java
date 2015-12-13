@@ -29,6 +29,7 @@
 package ch.maybites.tools.expression;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -425,8 +426,8 @@ public class Expression {
 					outputQueue.add(stack.pop());
 				}
 				if (stack.isEmpty()) {
-					throw new ExpressionException("Parse error for function '"
-							+ lastFunction + "' inside expr: \"" + expression + "\"");
+					throw new ExpressionException(createError("Parse error for function '"
+							+ lastFunction + "'", tokenizer.getPos()));
 				}
 			} else if (rt.operators.containsKey(token)) {
 				Operator o1 = rt.operators.get(token);
@@ -443,9 +444,7 @@ public class Expression {
 			} else if ("(".equals(token)) {
 				if (previousToken != null) {
 					if (isNumber(previousToken)) {
-						throw new ExpressionException(
-								"Missing operator at character position "
-										+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
+						throw new ExpressionException(createError("Missing operator", tokenizer.getPos()));
 					}
 					// if the ( is preceded by a valid function, then it
 					// denotes the start of a parameter list
@@ -459,8 +458,7 @@ public class Expression {
 					outputQueue.add(stack.pop());
 				}
 				if (stack.isEmpty()) {
-					throw new ExpressionException(
-							"Mismatched parentheses - missing closing '(' inside expr: \"" + expression + "\"" );
+					throw new ExpressionException(createError("Mismatched parentheses - missing opening '('", tokenizer.getPos()));
 				}
 				stack.pop();
 				if (!stack.isEmpty()
@@ -471,9 +469,7 @@ public class Expression {
 			} else if (token.startsWith("'") && token.endsWith("'")) {
 				if (previousToken != null && !previousToken.equals("(")) {
 					if (!rt.operators.containsKey(previousToken)) {
-						throw new ExpressionException(
-								"Missing operator at character position "
-										+ tokenizer.getPos() + " inside expr: \"" + expression + "\"" );
+						throw new ExpressionException(createError("Missing operator", tokenizer.getPos() - token.length()));
 					}
 				}
 				// take the string from the stack and put it into the outputQue
@@ -488,18 +484,18 @@ public class Expression {
 			String element = stack.pop();
 			if ("(".equals(element) || ")".equals(element)) {
 				throw new ExpressionException(
-						"Mismatched parentheses - missing >(< or >)< inside expr: \"" + expression + "\"");
+						"Mismatched parentheses - missing closing ) \n" + expression + "");
 			}
 			if ("'".equals(element)) {
 				throw new ExpressionException(
-						"Mismatched string - Missing text delimiter >'< inside expr: \"" + expression + "\"");
+						"Mismatched string - Missing text delimiter ' \n" + expression + "");
 			}
 			if(element.startsWith("'") && element.endsWith("'")){
 				outputQueue.add(element);
 			} else if (!rt.operators.containsKey(element)) {
 				throw new ExpressionException(
-						"Unknown operator or function: >"
-								+ element + "< inside expr: \"" + expression + "\"");
+						"Unknown operator or function: '"
+								+ element + "' \n" + expression + "");
 			} else {
 				outputQueue.add(element);
 			}
@@ -737,7 +733,7 @@ public class Expression {
 				token.append(next(rt));
 			} else if (Character.isLetter(ch) || (ch == '_')  || (ch == '$')) {
 				// --> it is a variable or a function
-				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '$'))
+				while ((Character.isLetter(ch) || Character.isDigit(ch) || (ch == '_') || (ch == '.') || (ch == '$'))
 						&& (pos < input.length())) {
 					token.append(input.charAt(pos++));
 					ch = pos == input.length() ? 0 : input.charAt(pos);
@@ -760,8 +756,7 @@ public class Expression {
 					ch = pos == input.length() ? 0 : input.charAt(pos);
 				}
 				if(insideString == true){
-					throw new ExpressionException("Missing String delimiter '" + token
-							+ "' at position " + (pos - token.length() + 1));
+					throw new ExpressionException(createError("Missing String delimiter '", (pos - token.length() + 1)));
 				}
 			} else {
 				// --> it is an operator ( but not a minus sign)
@@ -778,8 +773,8 @@ public class Expression {
 					}
 				}
 				if (!rt.operators.containsKey(token.toString())) {
-					throw new ExpressionException("Unknown operator '" + token
-							+ "' at position " + (pos - token.length() + 1));
+					throw new ExpressionException(createError("Unknown operator '" + token
+							+ "'", (pos - token.length() + 1)));
 				}
 			}
 			return previousToken = token.toString();
@@ -796,4 +791,9 @@ public class Expression {
 
 	}
 
+	private String createError(String error, int atpos){
+		char[] array = new char[atpos - 1];
+	    Arrays.fill(array, ' ');
+	    return error + "\n" + expression + "\n" + new String(array) + "^";
+	}
 }
