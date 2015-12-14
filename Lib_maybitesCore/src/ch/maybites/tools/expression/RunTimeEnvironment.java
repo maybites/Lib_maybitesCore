@@ -132,10 +132,24 @@ public class RunTimeEnvironment {
 			}
 		});
 
+		addOperator(new Operator("gt", 10, false) {
+			@Override
+			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException {
+				return operators.get(">").eval(parameters);
+			}
+		});
+
 		addOperator(new Operator(">=", 10, false) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
 				return parameters.get(0).compareTo(parameters.get(1)) >= 0 ? ExpressionVar.ONE : ExpressionVar.ZERO;
+			}
+		});
+
+		addOperator(new Operator("ge", 10, false) {
+			@Override
+			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException {
+				return operators.get(">=").eval(parameters);
 			}
 		});
 
@@ -146,11 +160,25 @@ public class RunTimeEnvironment {
 						: ExpressionVar.ZERO;
 			}
 		});
+		
+		addOperator(new Operator("lt", 10, false) {
+			@Override
+			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException {
+				return operators.get("<").eval(parameters);
+			}
+		});
 
 		addOperator(new Operator("<=", 10, false) {
 			@Override
 			public ExpressionVar eval(List<ExpressionVar> parameters) {
 				return parameters.get(0).compareTo(parameters.get(1)) <= 0 ? ExpressionVar.ONE : ExpressionVar.ZERO;
+			}
+		});
+		
+		addOperator(new Operator("le", 10, false) {
+			@Override
+			public ExpressionVar eval(List<ExpressionVar> parameters) throws ExpressionException{
+				return operators.get("<=").eval(parameters);
 			}
 		});
 
