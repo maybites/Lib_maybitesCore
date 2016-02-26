@@ -16,6 +16,7 @@
 	</path>
 	
 	<property name="jar.export1.dir" value="${maybites.sparck.export.dir}"/>
+	<property name="jar.export2.dir" value="${maybites.quescript.lib.folder}"/>
 	
 	<!-- 
  	 		==================================================================
@@ -41,6 +42,7 @@
 
 		<!-- jar to export dir-->
 		<copy file="${project.jar.build.dir}/${jar.name}" todir="${jar.export1.dir}"/>
+		<copy file="${project.jar.build.dir}/${jar.name}" todir="${jar.export2.dir}"/>
 
 		<!-- export library with the whole shebang-->
 		<condition property="makeExport">
