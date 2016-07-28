@@ -15,8 +15,7 @@
 	<path id="library-classpath">
 	</path>
 	
-	<property name="jar.export1.dir" value="${maybites.sparck.export.dir}"/>
-	<property name="jar.export2.dir" value="${maybites.quescript.lib.folder}"/>
+	<property name="export1.dir" value="${maybites.sparck.export.dir}/lib"/>
 	
 	<!-- 
  	 		==================================================================
@@ -36,13 +35,19 @@
 	<property file="${project.javadoc.dir}/building.properties" />
 
 	<target name="default" description="check conditions">
-		<!-- create jar inside bin-->
+		<!-- create jar inside bin ..-->
 		<antcall target="jar.build" />
-		<copy file="${project.jar.build.dir}/${jar.name}" todir="${build.library.dir}"/>
-
-		<!-- jar to export dir-->
-		<copy file="${project.jar.build.dir}/${jar.name}" todir="${jar.export1.dir}"/>
-		<copy file="${project.jar.build.dir}/${jar.name}" todir="${jar.export2.dir}"/>
+		<!-- copy file="${project.jar.build.dir}/${jar.name}" todir="${build.library.dir}"/-->
+	
+		<!-- classes to export dir-->
+		<copy todir="${export1.dir}">
+			<!-- 
+		    <fileset dir="${project.bin.dir}"/>
+		    -->
+			<resources>
+			  <file file="${project.jar.build.dir}/${jar.name}"/>
+			</resources>
+		</copy>
 
 		<!-- export library with the whole shebang-->
 		<condition property="makeExport">

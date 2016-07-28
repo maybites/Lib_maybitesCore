@@ -42,8 +42,8 @@ public class Debugger {
 		myLevel = l;
 		_showClassNames = true;
 	}
-
-	private int myLevel;
+	
+	public int myLevel;
 	private boolean _showClassNames;
 	
 	static private Debugger _instance = new Debugger(LEVEL_INFO);
