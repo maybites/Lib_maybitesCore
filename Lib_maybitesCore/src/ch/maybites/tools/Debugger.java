@@ -45,14 +45,20 @@ public class Debugger {
 	
 	public int myLevel;
 	private boolean _showClassNames;
+	private boolean _showMillis;
 	
 	static private Debugger _instance = new Debugger(LEVEL_INFO);
 
 	static public void showClassNames(){
 		
 	}
-	
+
+	static public void showMillis(boolean _show){
+		_instance._showMillis = _show;
+	}
+
 	static public void setLevelToVerbose(){
+		//_instance._showMillis = true;
 		_instance.myLevel = LEVEL_VERBOSE;
 	}
 	
@@ -73,6 +79,7 @@ public class Debugger {
 	}
 	
 	static public void setLevelToFatal(){
+		//_instance._showMillis = false;
 		_instance.myLevel = LEVEL_FATAL;
 	}
 	
@@ -85,6 +92,8 @@ public class Debugger {
 	}
 	
 	private void message(String _class, String message, int level){
+		if(_showMillis)
+			System.out.print("[" + System.currentTimeMillis() + "]");			
 		System.out.print(LEVEL_MESG[level]);
 		if(_class != null && _showClassNames)
 			System.out.print("from " + _class + ": ");
@@ -96,6 +105,8 @@ public class Debugger {
 	}
 	
 	private void messageErr(String _class, String message, int level){
+		if(_showMillis)
+			System.out.print("[" + System.currentTimeMillis() + "]");			
 		System.err.print(LEVEL_MESG[level]);
 		if(_class != null && _showClassNames)
 			System.err.print("from " + _class + ": ");
