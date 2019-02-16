@@ -1,3 +1,4 @@
+package ch.maybites.utils;
 /*
  * Copyright (c) 2013 maybites.ch
  * 
@@ -19,10 +20,10 @@
  *  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package ch.maybites.tools;
+public class Debug{
 
-public class Debugger {
-
+	private ch.maybites.utils.DebugLogger outlet = null;
+	
 	private static final int LEVEL_VERBOSE = 0;
 	private static final int LEVEL_DEBUG = 1;
 	private static final int LEVEL_INFO = 2;
@@ -38,16 +39,20 @@ public class Debugger {
 													"Fatal: "};
 	
 	// methods and attributes for Singleton pattern
-	private Debugger(int l) {
+	private Debug(int l) {
 		myLevel = l;
 		_showClassNames = true;
+	}
+	
+	public void setOutputObject(ch.maybites.utils.DebugLogger _reference){
+		outlet = _reference;
 	}
 	
 	public int myLevel;
 	private boolean _showClassNames;
 	private boolean _showMillis;
 	
-	static private Debugger _instance = new Debugger(LEVEL_INFO);
+	static private Debug _instance = new Debug(LEVEL_INFO);
 
 	static public void showClassNames(){
 		
@@ -87,30 +92,39 @@ public class Debugger {
 	 * Get the global Debugger instance
 	 * @return
 	 */
-	static public Debugger getInstance() {
+	static public Debug getInstance() {
 		return _instance;
 	}
-	
-	private void message(String _class, String message, int level){
+
+	private String constructMessageString(String _class, String message, int level){
+		String msg = "";
 		if(_showMillis)
-			System.out.print("[" + System.currentTimeMillis() + "]");			
-		System.out.print(LEVEL_MESG[level]);
+			msg ="[" + System.currentTimeMillis() + "]";
+		msg = msg + LEVEL_MESG[level];
 		if(_class != null && _showClassNames)
-			System.out.print("from " + _class + ": ");
-		System.out.println(message);
+			msg += "from " + _class + ": ";
+		msg += message;
+		return msg;
 	}
-	
+
+	private void message(String _class, String message, int level){
+		if(outlet != null){
+			outlet.printInfo(_showMillis, LEVEL_MESG[level], _class, message);
+		} else {
+			System.out.println(constructMessageString(_class, message, level));
+		}
+	}
+		
 	private void message(Class o, String message, int level){
 		message(o.getName(), message, level);
 	}
 	
 	private void messageErr(String _class, String message, int level){
-		if(_showMillis)
-			System.out.print("[" + System.currentTimeMillis() + "]");			
-		System.err.print(LEVEL_MESG[level]);
-		if(_class != null && _showClassNames)
-			System.err.print("from " + _class + ": ");
-		System.err.println(message);
+		if(outlet != null){
+			outlet.printError(_showMillis, LEVEL_MESG[level], _class, message);
+		} else {
+			System.err.println(constructMessageString(_class, message, level));
+		}
 	}
 
 	private void messageErr(Class o, String message, int level){

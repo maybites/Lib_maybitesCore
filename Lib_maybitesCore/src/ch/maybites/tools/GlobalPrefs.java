@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Martin Fršhlich
+ * Copyright (C) 2011 Martin Frï¿½hlich
  *
  * This class is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -26,6 +26,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+
+import ch.maybites.utils.Debug;
 
 public class GlobalPrefs {
 
@@ -64,7 +66,7 @@ public class GlobalPrefs {
 			props.load(file);
 			file.close();
 		} catch (IOException exp) {
-			Debugger.getInstance().errorMessage(this.getClass(),
+			Debug.getInstance().errorMessage(this.getClass(),
 					"No Property File found: " + exp.getMessage());
 			;
 		}
@@ -91,9 +93,9 @@ public class GlobalPrefs {
 			url = new URL("file:///" +_dataPath+filename);
 	        return url.openStream();
 		} catch (MalformedURLException e) {
-	        Debugger.getInstance().fatalMessage(this.getClass(), "### ERROR @getStream / "+ _dataPath + filename + " / " + e.getMessage());
+	        Debug.getInstance().fatalMessage(this.getClass(), "### ERROR @getStream / "+ _dataPath + filename + " / " + e.getMessage());
 		} catch (IOException e) {
-	        Debugger.getInstance().fatalMessage(this.getClass(), "### ERROR @getStream / "+ _dataPath + filename + " / " + e.getMessage());
+	        Debug.getInstance().fatalMessage(this.getClass(), "### ERROR @getStream / "+ _dataPath + filename + " / " + e.getMessage());
 		}
         return null;
     }
@@ -101,21 +103,21 @@ public class GlobalPrefs {
     public String getStringProperty(String key, String _default){
     	if(props.containsKey(key))
     		return props.getProperty(key, _default);
-		Debugger.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
+		Debug.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
 		return _default;
     }
 
     public int getIntProperty(String key, int _default){
     	if(props.containsKey(key))
     		return Integer.parseInt(props.getProperty(key));
-		Debugger.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
+		Debug.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
 		return _default;
     }
     
     public float getfloatProperty(String key, float _default){
     	if(props.containsKey(key))
     		return Float.parseFloat(props.getProperty(key));
-		Debugger.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
+		Debug.getInstance().errorMessage(this.getClass(),"No Property found for key: " + key + "... returning default value: "+_default);
 		return _default;
     }
 }

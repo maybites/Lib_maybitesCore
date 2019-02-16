@@ -24,8 +24,6 @@ package ch.maybites.utils.dyndist;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import ch.maybites.tools.Debugger;
-
 /**
  * The Dynamic Distributor is a useful tool to manage dynamic instances that can appear and disappear
  * because of asynchronous events. The inital impulse to create this library was to deal with the 
