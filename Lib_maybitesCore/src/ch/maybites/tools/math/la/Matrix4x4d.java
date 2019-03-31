@@ -199,7 +199,33 @@ public class Matrix4x4d
     m_[15] = m33;  
   }
 
-  
+  /**
+   * Sets this matrix as a perspective projection matrix
+   * @param left
+   * @param right
+   * @param bottom
+   * @param top
+   * @param zNear
+   * @param zFar
+   */
+  public void setPerspectiveMatrix(double left, double right,
+		  double bottom, double top,
+		  double zNear, double zFar){
+
+	  double A = (right+left)/(right-left);
+	  double B = (top+bottom)/(top-bottom);
+	  double C = -(zFar+zNear)/(zFar-zNear);
+	  double D = -2.0f*zFar*zNear/(zFar-zNear);
+	  initialize();
+	  setElement(0, 0, 2.0f*zNear/(right-left));
+	  setElement(1, 1, 2.0f*zNear/(top-bottom));
+	  setElement(2, 0, A);
+	  setElement(2, 1, B);
+	  setElement(2, 2, C);
+	  setElement(2, 3, -1.0f);
+	  setElement(3, 2, D);
+  }
+
 
   /**
    * Return the values of this 4x4 matrix.
