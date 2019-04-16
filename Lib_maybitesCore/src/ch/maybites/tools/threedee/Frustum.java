@@ -3,7 +3,7 @@ package ch.maybites.tools.threedee;
 /*
  * Mathematik
  *
- * Copyright (C) 2012 Martin Fršhlich
+ * Copyright (C) 2012 Martin Frï¿½hlich
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -196,6 +196,10 @@ public class Frustum {
 	private void updateFovy(){
 		fovy = (float)((Math.atan(top/zNear)-Math.atan(bottom/zNear))*Const.RAD_TO_DEG);
 	    aspectRatio = (right-left)/(top-bottom); 
+	}
+	
+	public String toString(){
+		return "Frustum: " + left + " " + right + " " + top + " " + bottom + " " + zNear + " " + zFar;
 	}
 
 }

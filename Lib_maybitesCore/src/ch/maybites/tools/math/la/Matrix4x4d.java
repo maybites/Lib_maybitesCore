@@ -237,7 +237,18 @@ public class Matrix4x4d
     return m_;
   }
   
-
+	/**
+	 * Return the values of this 4x4 matrix in COLUMN-oriented fashion.
+	 * 
+	 */
+	public double[] getCol()
+	{
+		double[] ret = new double[16];
+		for (int i=0; i<16; i++){
+			ret[i] = m_[i/4 + i%4*4];
+		}
+		return ret;
+	}
   
   /**
    * Check if this 4x4 matrix equals the specified object.
@@ -507,6 +518,15 @@ public class Matrix4x4d
     }
   }
 
+	/**
+	 * Transposes this matrix
+	 * @return this instance
+	 */
+	public Matrix4x4d transpose(){
+		Matrix4x4d trans = new Matrix4x4d(getCol());
+		set(trans);
+		return this;
+	}
 
 
   /**
