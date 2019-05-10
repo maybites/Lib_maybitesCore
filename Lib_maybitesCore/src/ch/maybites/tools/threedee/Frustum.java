@@ -199,7 +199,7 @@ public class Frustum {
 	}
 	
 	public String toString(){
-		return "Frustum: " + left + " " + right + " " + top + " " + bottom + " " + zNear + " " + zFar;
+		return "Frustum: " + left + " " + right + " " + bottom + " " + top + " " + zNear + " " + zFar;
 	}
 
 }

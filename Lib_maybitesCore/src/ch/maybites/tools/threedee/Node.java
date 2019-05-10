@@ -30,7 +30,7 @@ import ch.maybites.tools.math.la.Vector3f;
 
 /**
  * 
- * @author Martin Fršhlich
+ * @author Martin Frï¿½hlich
  *
  * This class is heavily indebted by the openframeworks ofNode class. It has some minor improvements
  * in regards to performance
@@ -71,6 +71,12 @@ public class Node {
 			clone.parent = parent.clone();
 		clone.createMatrix();
 		return clone;
+	}
+	
+	public void setMatrix(Matrix4x4f _matrix){
+		localTransfromMatrix = _matrix.clone();
+		localTransfromMatrix.decompose(position, orientation, scale, new Quaternionf());		
+		setTransformed();
 	}
 	
 	/**
